@@ -1,6 +1,7 @@
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { BaseTable } from "../../common/entity/base-table.entity";
 import { Interest } from "./interest.entity";
+import { Follow } from "../../follow/entity/follow.entity";
 
 export enum gender {
   male,
@@ -46,6 +47,12 @@ export class User extends BaseTable {
   @ManyToMany(()=> Interest, (interest)=>interest.users, {cascade: true})
   @JoinTable()
   interests: Interest[]; // 관심 도서 분야
+
+  @OneToMany(() => Follow, (follow)=> follow.follower)
+  following: Follow[]; // 사용자가 팔로우한 관계
+
+  @OneToMany(() => Follow, (follow)=> follow.following)
+  followers: Follow[]; // 사용자를 팔로우한 관계
 
   // 태그 필요(칭호 관련)
 }
