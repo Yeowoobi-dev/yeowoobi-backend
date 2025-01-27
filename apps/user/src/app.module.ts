@@ -21,6 +21,7 @@ import { FollowModule } from './follow/follow.module';
         url: configService.getOrThrow('DB_URL'),
         autoLoadEntities: true,
         synchronize: true,
+        logging: true,
       }),
       inject: [ConfigService]
     }),
