@@ -23,6 +23,6 @@ export class AuthController {
     const user = await this.kakaoAuthService.validateOrCreateUser(req.user)
     const token = await this.authService.generateJwtToken(user)
     
-    return {accessToken: token, user};
+    return {accessToken: token};
   }
 }
