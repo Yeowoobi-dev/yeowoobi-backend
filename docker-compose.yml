@@ -10,13 +10,13 @@ services:
     depends_on:
       postgres_user:
         condition: service_healthy
-    # env_file:
-    #   - ./apps/user/.env
+    env_file:
+      - .env
     ports:
       - '3001:3000' # 임시
     volumes:
       - .:/usr/src/app 
-      - /usr/src/app/node_modules
+      # - /usr/src/app/node_modules
 
   postgres_user:
     image: postgres:16
