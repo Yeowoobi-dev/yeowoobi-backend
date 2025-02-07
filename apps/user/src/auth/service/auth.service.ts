@@ -15,7 +15,9 @@ export class AuthService {
  * 1 시간
  */
   async generateJwtToken(user: AuthUserDto) {
-    const payload = { id: user.id, email: user.email};
+    const payload = { id: user.id, 
+      // email: user.email 일단 userId 만
+    };
     return this.jwtService.sign(payload, { expiresIn: '1h' })
   }
 
@@ -23,6 +25,6 @@ export class AuthService {
    * jwt 검증
    */
   async verifyJwtToken(token: string) {
-    this.jwtService.verify(token, this.configService.get('JWT_SECRET'));
+    return this.jwtService.verify(token, this.configService.get('JWT_SECRET'));
   }
 }

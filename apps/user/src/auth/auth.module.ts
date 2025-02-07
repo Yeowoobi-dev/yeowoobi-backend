@@ -10,6 +10,7 @@ import { KakaoAuthService } from './service/kakao-auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entity/user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtStrategy } from './strategy/jwt.strategy';
 
 @Module({
   imports: [
@@ -20,12 +21,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' },
+        signOptions: { expiresIn: '1h' }, // 임시
       }),
     }),
     TypeOrmModule.forFeature([User]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, KakaoAuthGuard, KakaoAuthService, KakaoStrategy, UserService],
+  providers: [AuthService, KakaoAuthGuard, KakaoAuthService, KakaoStrategy, UserService, JwtStrategy],
+  exports: [AuthService]
 })
 export class AuthModule {}
