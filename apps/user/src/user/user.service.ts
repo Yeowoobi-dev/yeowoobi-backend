@@ -11,7 +11,6 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly authService: AuthService,
   ) {}
   /**
    * socialId 로 사용자 확인 메소드
@@ -37,7 +36,7 @@ export class UserService {
    * 추후에 변경 예정
    */
   async createUser(createUserDto: CreateUserDto) {
-    const user = await this.userRepository.create(createUserDto);
+    const user = this.userRepository.create(createUserDto);
     const saveUser = await this.userRepository.save(user);
 
     return user;
@@ -58,5 +57,22 @@ export class UserService {
     const saveUser = await this.userRepository.save(user);
     
     return saveUser.nickname;
+  }
+
+  /**
+   * 사용자 소개글 작성 메소드
+   * @param userId 
+   * @param introduce 
+   * @returns 
+   * 생성된 사용자 소개 반환
+   */
+  async createIntroduce(userId: string, introduce: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId }
+    });
+    user.introduce = introduce;
+    const saveUser = await this.userRepository.save(user);
+
+    return saveUser.introduce;
   }
 }

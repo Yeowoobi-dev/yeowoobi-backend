@@ -11,6 +11,7 @@ async function bootstrap() {
     .setTitle('여우비')
     .setDescription('여우비 api')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('doc',app, document);
