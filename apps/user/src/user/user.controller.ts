@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Headers, UseGuards, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from '@nestjs/passport';
-import { createNicknameDto } from './dto/create-nickname.dto';
+import { CreateNicknameDto } from './dto/create-nickname.dto';
 import { CreateIntroduceDto } from './dto/create-introduce.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
@@ -12,14 +12,14 @@ export class UserController {
   /**
    * 닉네임 생성
    * @param req 
-   * @param nickname 
+   * @param dto 
    * @returns 
    * 변경된 유저 닉네임 반환
    */
   @Post('nickname')
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  async generateNickname(@Req() req, @Body() dto: createNicknameDto) {
+  async generateNickname(@Req() req, @Body() dto: CreateNicknameDto) {
     const newNickname =  await this.userService.createNickname(req.user.userId, dto.nickname);
 
     return { nickname: newNickname };
@@ -28,7 +28,7 @@ export class UserController {
   /**
    * 유저 소개 생성
    * @param req 
-   * @param introduce 
+   * @param dto
    * @returns 
    * 유저 소개 반환
    */
