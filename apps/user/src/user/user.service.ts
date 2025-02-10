@@ -36,10 +36,9 @@ export class UserService {
    * 추후에 변경 예정
    */
   async createUser(createUserDto: CreateUserDto) {
-    const user = this.userRepository.create(createUserDto);
-    const saveUser = await this.userRepository.save(user);
+    const saveUser = await this.userRepository.save(createUserDto);
 
-    return user;
+    return saveUser;
   }
 
   /**
@@ -50,14 +49,21 @@ export class UserService {
    * 닉네임이 변경된 사용자의 닉네임
    */
   async createNickname(userId: string, nickname: string) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId }
-    })
-    user.nickname = nickname;
-    const saveUser = await this.userRepository.save(user);
-    
-    return saveUser.nickname;
-  }
+    // const user = await this.userRepository.findOne({
+    //   where: { id: userId }
+    // })
+    // user.nickname = nickname;
+    // const saveUser = await this.userRepository.save(user);
+    // findOne - save 에서 update로 로직 변경
+    const result = await this.userRepository.update({ id: userId }, { nickname: nickname})
+    if (result.affected === 0){
+      throw new NotFoundException(`User not found`);
+    }
+    // 닉네임 중복 처리 필요
+
+    // return saveUser.nickname;
+    return nickname; // affected 0일 때 걸러지기 때문에 그냥 입력값 그대로 반환해도 괜찮음
+  } 
 
   /**
    * 사용자 소개글 작성 메소드
@@ -67,12 +73,11 @@ export class UserService {
    * 생성된 사용자 소개 반환
    */
   async createIntroduce(userId: string, introduce: string) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId }
-    });
-    user.introduce = introduce;
-    const saveUser = await this.userRepository.save(user);
-
-    return saveUser.introduce;
+    // findOne, save 에서 update로 로직 변경
+    const result = await this.userRepository.update({ id: userId }, { introduce: introduce });
+    if (result.affected === 0) {
+      throw new NotFoundException(`User not found`);
+    }
+    return introduce;
   }
 }

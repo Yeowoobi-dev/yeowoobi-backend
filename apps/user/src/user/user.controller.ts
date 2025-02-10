@@ -19,7 +19,7 @@ export class UserController {
   @Post('nickname')
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  async generateNickname(@Req() req, @Body('nickname') dto: createNicknameDto) {
+  async generateNickname(@Req() req, @Body() dto: createNicknameDto) {
     const newNickname =  await this.userService.createNickname(req.user.userId, dto.nickname);
 
     return { nickname: newNickname };
@@ -35,7 +35,7 @@ export class UserController {
   @Post('introduce')
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  async generateIntroduce(@Req() req, @Body('introduce') dto: CreateIntroduceDto) {
+  async generateIntroduce(@Req() req, @Body() dto: CreateIntroduceDto) {
     const newIntroduce = await this.userService.createIntroduce(req.user.userId, dto.introduce);
 
     return { introduce: newIntroduce };
