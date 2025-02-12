@@ -57,6 +57,12 @@ export class User extends BaseTable {
   @Column({ type: 'enum', enum: Role, default: Role.user})
   role: Role;
 
+  @Column({default: 0})
+  followerCount: number;
+
+  @Column({default: 0})
+  followingCount: number;
+
   @ManyToMany(()=> Interest, (interest)=>interest.users, {cascade: true})
   @JoinTable()
   interests: Interest[]; // 관심 도서 분야
