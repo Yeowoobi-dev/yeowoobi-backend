@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
-import { Repository } from 'typeorm';
+import { Auth, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AuthService } from '../auth/service/auth.service';
 import { when } from 'joi';
@@ -11,6 +11,7 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly authService: AuthService
   ) {}
   /**
    * socialId 로 사용자 확인 메소드
@@ -40,7 +41,31 @@ export class UserService {
 
     return saveUser;
   }
+  //////////////////////////////////////////////////////////////////
+  ///////////////////////temp//////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
+  async createTempUser(email: string, name: string) {
+    const saveUser = await this.userRepository.save({
+      email: email,
+      name: name,
+    });
+    // const token = await this.authService.generateJwtToken(saveUser);
 
+    return saveUser;
+  }
+
+  async login(email: string, name: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email, name
+      }
+    });
+    const token = await this.authService.generateJwtToken(user);
+    return token;
+  }
+  //////////////////////////////////////////////////////////////////
+  ///////////////////////temp//////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
   /**
    * 닉네임 변경 메소드
    * @param token 
