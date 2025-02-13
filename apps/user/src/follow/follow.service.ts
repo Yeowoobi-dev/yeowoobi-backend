@@ -71,4 +71,34 @@ export class FollowService {
     await this.userRepository.decrement({ id: targetUserId }, 'followerCount', 1);
     await this.userRepository.decrement({ id: currentUserId }, 'followingCount', 1);
   }
+
+  /**
+   * 팔로워 목록 조회
+   * @param currentUserId 
+   * @returns 
+   * 팔로워 목록
+   */
+  async findFollower(currentUserId: string): Promise<Follow[]> {
+    const follower =  await this.followRepository.find({
+      where: { following: { id: currentUserId }},
+      relations: ['follower'],
+    });
+
+    return follower;
+  }
+
+  /**
+   * 팔로잉 목록 조회
+   * @param currentUserId 
+   * @returns 
+   * 팔로잉 목록
+   */
+  async findFollowing(currentUserId: string): Promise<Follow[]> {
+    const following =  await this.followRepository.find({
+      where: { follower: { id: currentUserId }},
+      relations: ['following'],
+    });
+
+    return following;
+  }
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './service/auth.service';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
@@ -11,6 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entity/user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -25,9 +26,10 @@ import { JwtStrategy } from './strategy/jwt.strategy';
       }),
     }),
     TypeOrmModule.forFeature([User]),
+    forwardRef(() => UserModule)
   ],
   controllers: [AuthController],
-  providers: [AuthService, KakaoAuthGuard, KakaoAuthService, KakaoStrategy, UserService, JwtStrategy],
+  providers: [AuthService, KakaoAuthGuard, KakaoAuthService, KakaoStrategy, JwtStrategy],
   exports: [AuthService]
 })
 export class AuthModule {}
