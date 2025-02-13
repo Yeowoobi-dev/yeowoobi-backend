@@ -1,17 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
-import { Auth, Repository } from 'typeorm';
+import { Auth, In, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AuthService } from '../auth/service/auth.service';
 import { when } from 'joi';
+import { Interest } from './entity/interest.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly authService: AuthService
+    @InjectRepository(Interest)
+    private readonly interestRepository: Repository<Interest>,
+    private readonly authService: AuthService,
   ) {}
   /**
    * socialId 로 사용자 확인 메소드
@@ -74,19 +77,11 @@ export class UserService {
    * 닉네임이 변경된 사용자의 닉네임
    */
   async createNickname(userId: string, nickname: string) {
-    // const user = await this.userRepository.findOne({
-    //   where: { id: userId }
-    // })
-    // user.nickname = nickname;
-    // const saveUser = await this.userRepository.save(user);
-    // findOne - save 에서 update로 로직 변경
     const result = await this.userRepository.update({ id: userId }, { nickname: nickname})
     if (result.affected === 0){
       throw new NotFoundException(`User not found`);
     }
-    // 닉네임 중복 처리 필요
-
-    // return saveUser.nickname;
+    // 중복은 디비에서 알아서 잡아줌 에러핸들러로 응답 통일했음
     return nickname; // affected 0일 때 걸러지기 때문에 그냥 입력값 그대로 반환해도 괜찮음
   } 
 
@@ -104,5 +99,51 @@ export class UserService {
       throw new NotFoundException(`User not found`);
     }
     return introduce;
+  }
+
+  /**
+   * 관심 분야 선택
+   * @param currentUserId 
+   * @param interestName 
+   * @returns
+   *  
+   */
+  async saveUserInterests(currentUserId: string, interestName: string[]) {
+    const user = await this.userRepository.findOne({
+      where: { id: currentUserId },
+      relations: ['interests']
+    })
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    // 이미 선택한 관심사 예외 처리 필요
+    const interests = await this.interestRepository.find({
+      where: {
+        tag: In(interestName),
+      }
+    });
+    user.interests = interests;
+
+    return await this.userRepository.save(user);
+  }
+
+  /**
+   * 관심사 조회
+   * @param currentUserId 
+   * @returns 
+   * 유저 관심사 tag 반환
+   */
+  async findInterests(currentUserId: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: currentUserId
+      },
+      relations: ['interests'],
+    });
+    if (!user) {
+      throw new NotFoundException("User not Found");
+    }
+
+    return user.interests.map(interest => interest.tag);
   }
 }
