@@ -6,12 +6,12 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { FollowModule } from './follow/follow.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from "@nestjs/jwt";
+import path from "path";
 
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath:'.env',
       isGlobal: true,
       validationSchema: Joi.object({
         HTTP_PORT: Joi.number().required(),
