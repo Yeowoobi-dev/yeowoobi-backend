@@ -17,7 +17,6 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('doc',app, document);
-  
   app.useGlobalInterceptors(new ResponseInterceptor);
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
@@ -25,7 +24,6 @@ async function bootstrap() {
     forbidNonWhitelisted: true,
   }));
   app.useGlobalFilters(new HttpExceptionFilter(), new DatabaseExceptionFilter());
-
   await app.listen(process.env.HTTP_PORT ?? 3000);
 }
 bootstrap();
