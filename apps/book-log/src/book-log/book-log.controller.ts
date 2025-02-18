@@ -1,14 +1,26 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { BookLogService } from './book-log.service';
 
-@Controller()
+@Controller('books')
 export class BookLogController {
   constructor(private readonly bookLogService: BookLogService) {}
 
   // 도서 정보 api 조회
-  
-  // 독서록 작성
+  @Get('naver')
+  async bookInfoList(
+    @Query('query') query: string,
+    @Query('display') display?: number,
+    @Query('start') start?: number,
+  ) {
+    if (!query) {
+      return { text: '검색어는 필수입니다.'}
+    }
 
+    const books = await this.bookLogService.searchBooks(query, display, start);
+    return {books: books}
+  }
+  // 독서록 작성
+  
   // 특정 독서록 상세 조회 ?
 
   // 특정 독서록 수정
