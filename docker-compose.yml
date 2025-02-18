@@ -1,6 +1,19 @@
 version: '3.1'
 
 services:
+  gateway:
+    build:
+      context: .
+      dockerfile: ./apps/gateway/Dockerfile
+      target: development
+    command: pnpm run start:dev gateway # 도커 컴포즈 커맨드로 오버라이드 됨
+    env_file:
+      - ./apps/gateway/.env
+    ports:
+      - '3000:3000' # 임시
+    volumes:
+      - .:/usr/src/app 
+      # - /usr/src/app/node_modules
   user:
     build:
       context: .
