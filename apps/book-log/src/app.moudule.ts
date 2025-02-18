@@ -4,6 +4,9 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import * as Joi from "joi";
+import { HttpModule } from '@nestjs/axios';
+import { BookLogService } from "./book-log/book-log.service";
+import { BookLogController } from "./book-log/book-log.controller";
 
 @Module({
   imports: [
@@ -30,6 +33,7 @@ import * as Joi from "joi";
         }),
         BookLogModule,
   ],
+  providers: [],
   controllers: [],
 })
 export class AppModule {}
