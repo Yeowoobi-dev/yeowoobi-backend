@@ -20,6 +20,11 @@ export class BookLogController {
     return {books: books}
   }
   // 독서록 작성
+  // 도서 정보 저장(1)
+  @Post('')
+  async bookInfoSave() {
+    
+  }
   
   // 특정 독서록 상세 조회 ?
 
