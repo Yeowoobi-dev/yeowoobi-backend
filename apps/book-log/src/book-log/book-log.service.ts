@@ -23,8 +23,6 @@ export class BookLogService {
       'X-Naver-Client-Id': process.env.NAVER_CLIENT_ID,
       'X-Naver-Client-Secret': process.env.NAVER_SECRET,
     };
-    console.log(process.env.NAVER_CLIENT_ID)
-    console.log(process.env.NAVER_SECRET)
     try {
       const response = await lastValueFrom(
         this.httpService.get(url, { headers }),
