@@ -70,18 +70,18 @@ services:
   postgres_book-log:
     image: postgres:16
     env_file:
-      - ./apps/user/.env
-    # environment:
-    #   POSTGRES_USER: ${POSTGRES_USER}
-    #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   POSTGRES_DB: ${POSTGRES_DB}
+      - ./apps/book-log/.env
+    environment:
+      POSTGRES_USER: yeowoo
+      POSTGRES_PASSWORD: yeowoo1234!@
+      POSTGRES_DB: yeowoobi-booklog-db
     ports:
       - '6002:5432'
     volumes:
       - ./postgres/book-log:/var/lib/postgresql/data
     healthcheck:
       # test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
-      test: ["CMD-SHELL", "pg_isready -d yeowoobi-db -U yeowoo"]
+      test: ["CMD-SHELL", "pg_isready -d yeowoobi-booklog-db -U yeowoo"]
       interval: 5s
       timeout: 5s
       retries: 10

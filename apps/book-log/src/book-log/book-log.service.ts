@@ -1,11 +1,17 @@
 import { HttpService } from '@nestjs/axios';
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
+import { Repository } from 'typeorm';
+import { BookLog } from './entity/book-log.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { SaveBookLogDto } from './dto/book-log.dto';
 
 @Injectable()
 export class BookLogService {
   constructor(
-    private readonly httpService: HttpService
+    private readonly httpService: HttpService,
+    @InjectRepository(BookLog)
+    private readonly bookLogRepository: Repository<BookLog>
   ){}
   private readonly baseUrl: string = 'https://openapi.naver.com/v1/search/book.json';
 
@@ -37,4 +43,30 @@ export class BookLogService {
     }
   }
 
+  /**
+   * 
+   * @param userId 
+   * @param bookLog 
+   * @returns 
+   *  기록될 독서록 정보 반환
+   */
+  async saveBookInfo(userId: string, bookLog: SaveBookLogDto) {
+    const result = await this.bookLogRepository.save({
+      userId,
+      logTitle: bookLog.logTitle,
+      text: bookLog.text,
+      category: bookLog.category,
+      bookTitle: bookLog.bookTitle,
+      bookImage: bookLog.bookImage,
+      author: bookLog.author,
+      publisher: bookLog.publisher,
+    })
+    // if (result.affected === 0){
+    //   throw new NotFoundException(`User not found`);
+    // }
+
+    return { bookLog }
+  };
+
+  
 }

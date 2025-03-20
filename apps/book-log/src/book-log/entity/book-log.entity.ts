@@ -13,14 +13,14 @@ export class BookLog extends BaseTable {
   @Column()
   logTitle: string;
 
-  @Column({type: "text"})
+  @Column({type: "text", nullable: true})
   text: string;
 
-  @Column({length: 255})
+  @Column({length: 255, nullable: true})
   review: string;
 
   @Index()
-  @Column()
+  @Column({nullable: true})
   category: string;
 
   @Column()
@@ -36,6 +36,6 @@ export class BookLog extends BaseTable {
   publisher: string;
 
   @Index() // 공개 범위 필터링 최적화
-  @Column({ type: "enum", enum: ["public", "private", "followers"], default: "public" })
+  @Column({ type: "enum", enum: ["public", "private", "followers"], default: "private" })
   visibility: "public" | "private" | "followers";
 }
