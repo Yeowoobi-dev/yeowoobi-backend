@@ -81,7 +81,7 @@ services:
       - ./postgres/book-log:/var/lib/postgresql/data
     healthcheck:
       # test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
-      test: ["CMD-SHELL", "pg_isready -d yeowoobi-db -U yeowoo"]
+      test: ["CMD-SHELL", "pg_isready -d yeowoobi-booklog-db -U yeowoo"]
       interval: 5s
       timeout: 5s
       retries: 10
