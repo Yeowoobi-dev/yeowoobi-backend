@@ -39,6 +39,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/gateway/tsconfig.app.json"
       }
+    },
+    "community": {
+      "type": "application",
+      "root": "apps/community",
+      "entryFile": "main",
+      "sourceRoot": "apps/community/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/community/tsconfig.app.json"
+      }
     }
   }
 }
