@@ -1,0 +1,66 @@
+// proto/user.proto
+syntax = "proto3";
+
+package user;
+
+service UserService {
+  rpc FindBySocialId (FindBySocialIdRequest) returns (UserResponse) {}
+  rpc CreateUser (CreateUserRequest) returns (UserResponse) {}
+  rpc CreateNickname (CreateNicknameRequest) returns (CreateNicknameResponse) {}
+  rpc CreateIntroduce (CreateIntroduceRequest) returns (UserResponse) {}
+  rpc SaveInterests (SaveInterestsRequest) returns (UserResponse) {}
+  rpc FindInterests (FindInterestsRequest) returns (UserResponse) {}  
+  rpc ValidateOrCreateUser (ValidateOrCreateUserRequest) returns (UserResponse) {}
+}
+
+message FindBySocialIdRequest {
+  string social_id = 1;
+  string social_type = 2;
+}
+
+message CreateUserRequest {
+  string social_id = 1;
+  string email = 2;
+  string name = 3;
+  string social_type = 4;
+}
+
+message CreateNicknameResponse {
+  string nickname = 1;
+}
+
+message UserResponse {
+  string id = 1;
+  string social_id = 2;
+  string email = 3;
+  string name = 4;
+  string social_type = 5;
+  optional string nickname = 6;
+  optional string introduce = 7;
+}
+
+message CreateNicknameRequest {
+  string userId = 1;
+  string nickname = 2;
+}
+
+message CreateIntroduceRequest {
+  string userId = 1;
+  string introduce = 2;
+}
+
+message SaveInterestsRequest {
+  string userId = 1;
+  repeated string interestNames = 2;
+}
+
+message FindInterestsRequest {
+  string userId = 1;
+}
+
+message ValidateOrCreateUserRequest {
+  string social_id = 1;
+  string email = 2;
+  string name = 3;
+  string social_type = 4;
+}

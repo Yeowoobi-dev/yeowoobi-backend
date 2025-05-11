@@ -20,6 +20,8 @@
     "test:e2e": "jest --config ./apps/yeowoobi-back.v1/test/jest-e2e.json"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.13.3",
+    "@grpc/proto-loader": "^0.7.13",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.0",

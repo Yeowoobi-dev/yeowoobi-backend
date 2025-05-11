@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Follow } from './entity/follow.entity';
 import { User } from '../user/entity/user.entity';
 import { UserModule } from '../user/user.module';
-import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -13,7 +12,6 @@ import { AuthModule } from '../auth/auth.module';
       Follow,
       User,
     ]),
-    AuthModule,
   ],
   controllers: [FollowController],
   providers: [FollowService],

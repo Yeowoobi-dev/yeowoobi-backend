@@ -8,24 +8,39 @@ import { UserService } from '../user/user.service';
 import { KakaoAuthGuard } from './guard/kakao-auth.guard';
 import { KakaoAuthService } from './service/kakao-auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../user/entity/user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { UserModule } from '../user/user.module';
+import { ClientsModule } from '@nestjs/microservices';
+import { Transport } from '@nestjs/microservices';
+import { join } from 'path';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env'
+    }),
+    ClientsModule.register([
+      {
+        name: 'USER_SERVICE',
+        transport: Transport.GRPC,
+        options: {
+          package: 'user',
+          protoPath: '/usr/src/app/proto/user.proto',
+          url: 'user:5000',
+        },
+      },
+    ]),
     PassportModule.register({defaultStrategy: 'jwt'}),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' }, // 임시
+        signOptions: { expiresIn: '1h' },
       }),
     }),
-    TypeOrmModule.forFeature([User]),
     forwardRef(() => UserModule)
   ],
   controllers: [AuthController],

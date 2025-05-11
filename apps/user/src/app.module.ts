@@ -4,10 +4,8 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import * as Joi from "joi";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { FollowModule } from './follow/follow.module';
-import { AuthModule } from './auth/auth.module';
 import { JwtModule } from "@nestjs/jwt";
 import path from "path";
-
 
 @Module({
   imports: [
@@ -34,7 +32,6 @@ import path from "path";
     }),
     UserModule,
     FollowModule,
-    AuthModule,
   ],
 })
 export class AppModule {}

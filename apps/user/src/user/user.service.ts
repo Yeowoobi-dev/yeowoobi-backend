@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
 import { Auth, In, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import { AuthService } from '../auth/service/auth.service';
 import { when } from 'joi';
 import { Interest } from './entity/interest.entity';
 
@@ -14,7 +13,6 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Interest)
     private readonly interestRepository: Repository<Interest>,
-    private readonly authService: AuthService,
   ) {}
   /**
    * socialId 로 사용자 확인 메소드
@@ -24,11 +22,11 @@ export class UserService {
    */
   async findBySocialId(socialId: string, socialType: string) {
     const user = await this.userRepository.findOne({
-      where: { socialId, socialType }
+      where: {
+        socialId,
+        socialType
+      }
     });
-    if (!user) {
-      const user = null;
-    }
     return user;
   }
   /**
@@ -39,36 +37,15 @@ export class UserService {
    * social(카톡) 에서 nickname 을 받아 name 으로 사용
    * 추후에 변경 예정
    */
-  async createUser(createUserDto: CreateUserDto) {
-    const saveUser = await this.userRepository.save(createUserDto);
-
-    return saveUser;
-  }
-  //////////////////////////////////////////////////////////////////
-  ///////////////////////temp//////////////////////////////////////
-  //////////////////////////////////////////////////////////////////
-  async createTempUser(email: string, name: string) {
-    const saveUser = await this.userRepository.save({
-      email: email,
-      name: name,
+  async createUser(data: { social_id: string; email: string; name: string; social_type: string }) {
+    const user = this.userRepository.create({
+      socialId: data.social_id,
+      email: data.email,
+      name: data.name,
+      socialType: data.social_type
     });
-    // const token = await this.authService.generateJwtToken(saveUser);
-
-    return saveUser;
+    return this.userRepository.save(user);
   }
-
-  async login(email: string, name: string) {
-    const user = await this.userRepository.findOne({
-      where: {
-        email, name
-      }
-    });
-    const token = await this.authService.generateJwtToken(user);
-    return token;
-  }
-  //////////////////////////////////////////////////////////////////
-  ///////////////////////temp//////////////////////////////////////
-  //////////////////////////////////////////////////////////////////
   /**
    * 닉네임 변경 메소드
    * @param token 

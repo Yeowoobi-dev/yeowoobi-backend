@@ -18,6 +18,8 @@ export class AuthService {
     const payload = { id: user.id, 
       // email: user.email 일단 userId 만
     };
+    console.log('Signing JWT with:', payload);
+
     return this.jwtService.sign(payload, { expiresIn: '1h' })
   }
 

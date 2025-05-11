@@ -1,8 +1,8 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './service/auth.service';
-import { AuthGuard } from '@nestjs/passport';
 import { KakaoAuthGuard } from './guard/kakao-auth.guard';
 import { KakaoAuthService } from './service/kakao-auth.service';
+import { GrpcMethod } from '@nestjs/microservices';
 
 @Controller('auth')
 export class AuthController {
@@ -20,6 +20,7 @@ export class AuthController {
   @Get('kakao/callback')
   @UseGuards(KakaoAuthGuard)
   async kakaoAuthCallback(@Req() req) {
+    console.log('kakaoAuthCallback', req.user);
     const user = await this.kakaoAuthService.validateOrCreateUser(req.user)
     const token = await this.authService.generateJwtToken(user)
     
