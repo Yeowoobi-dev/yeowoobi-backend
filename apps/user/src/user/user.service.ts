@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
 import { Auth, In, Repository } from 'typeorm';
@@ -21,12 +21,14 @@ export class UserService {
    * 소셜 아이디와 소셜 타입으로 사용자 확인
    */
   async findBySocialId(socialId: string, socialType: string) {
+    
     const user = await this.userRepository.findOne({
       where: {
         socialId,
         socialType
       }
     });
+    console.log("findBySocialId", user);
     return user;
   }
   /**
@@ -44,7 +46,7 @@ export class UserService {
       name: data.name,
       socialType: data.social_type
     });
-    return this.userRepository.save(user);
+    return await this.userRepository.save(user);
   }
   /**
    * 닉네임 변경 메소드
@@ -85,22 +87,31 @@ export class UserService {
    * @returns
    *  
    */
-  async saveUserInterests(currentUserId: string, interestName: string[]) {
+  async saveInterests(currentUserId: string, interestName: string[]) {
     const user = await this.userRepository.findOne({
       where: { id: currentUserId },
       relations: ['interests']
-    })
+    });
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    // 이미 선택한 관심사 예외 처리 필요
-    const interests = await this.interestRepository.find({
-      where: {
-        tag: In(interestName),
-      }
-    });
-    user.interests = interests;
 
+    // 관심사 레포지토리에서 관심사 조회 및 생성
+    const interests = [];
+    for (const name of interestName) {
+      let interest = await this.interestRepository.findOne({
+        where: { tag: name }
+      });
+      
+      if (!interest) {
+        interest = this.interestRepository.create({ tag: name });
+        interest = await this.interestRepository.save(interest);
+      }
+      interests.push(interest);
+    }
+
+    user.interests = interests;
     return await this.userRepository.save(user);
   }
 

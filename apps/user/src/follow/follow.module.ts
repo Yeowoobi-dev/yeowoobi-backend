@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Follow } from './entity/follow.entity';
 import { User } from '../user/entity/user.entity';
 import { UserModule } from '../user/user.module';
+import { FollowTcpController } from './follow.tcp.controller';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { UserModule } from '../user/user.module';
       User,
     ]),
   ],
-  controllers: [FollowController],
+  controllers: [FollowController, FollowTcpController],
   providers: [FollowService],
 })
 export class FollowModule {}

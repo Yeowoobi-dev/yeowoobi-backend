@@ -11,9 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { UserModule } from '../user/user.module';
-import { ClientsModule } from '@nestjs/microservices';
-import { Transport } from '@nestjs/microservices';
-import { join } from 'path';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -24,11 +22,10 @@ import { join } from 'path';
     ClientsModule.register([
       {
         name: 'USER_SERVICE',
-        transport: Transport.GRPC,
+        transport: Transport.TCP,
         options: {
-          package: 'user',
-          protoPath: '/usr/src/app/proto/user.proto',
-          url: 'user:5000',
+          host: 'user',
+          port: 5000,
         },
       },
     ]),

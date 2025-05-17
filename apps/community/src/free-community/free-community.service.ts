@@ -12,8 +12,11 @@ export class FreeCommunityService {
   constructor(
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
+    @InjectRepository(PostLike)
     private readonly postLikeRepository: Repository<PostLike>,
+    @InjectRepository(PostComment)
     private readonly postCommentRepository: Repository<PostComment>,
+    @InjectRepository(CommentLike)
     private readonly commentLikeRepository: Repository<CommentLike>,
   ) {}
 
@@ -71,16 +74,46 @@ export class FreeCommunityService {
    * @returns 
    */
   async deletePost(userId: string, postId: number) {
-    const post = await this.postRepository.findOne({ where: { id: postId }});
-    if (!post) throw new NotFoundException('게시글이 존재하지 않습니다');
-  
-    if (post.authorId !== userId) {
-      throw new BadRequestException('작성자만 삭제할 수 있습니다');
+    console.log(`[deletePost] 시작 - userId: ${userId}, postId: ${postId}`);
+    
+    try {
+      const post = await this.postRepository.findOne({ 
+        where: { id: postId }
+      });
+      
+      if (!post) {
+        console.log(`[deletePost] 실패 - 게시글을 찾을 수 없음: postId ${postId}`);
+          return {
+            statusCode: 404,
+            message: '게시글이 존재하지 않습니다'
+          };
+      }
+      console.log(`[deletePost] 게시글 찾음: ${JSON.stringify(post)}`);
+    
+      if (post.authorId !== userId) {
+        console.log(`[deletePost] 실패 - 권한 없음: post.authorId ${post.authorId}, userId ${userId}`);
+        return {
+          statusCode: 403,
+          message: '작성자만 삭제할 수 있습니다'
+        };
+      }
+
+      // 게시글 삭제 (CASCADE 옵션으로 인해 연관된 댓글과 좋아요도 자동 삭제됨)
+      console.log(`[deletePost] 게시글 삭제 시작`);
+      await this.postRepository.remove(post);
+      console.log(`[deletePost] 게시글 삭제 완료`);
+      
+      return { 
+        statusCode: 200,
+        message: '게시글 삭제 완료' 
+      };
+    } catch (error) {
+      console.error(`[deletePost] 삭제 중 오류 발생:`, error);
+      return {
+        statusCode: 500,
+        message: '게시글 삭제 중 오류가 발생했습니다'
+      };
     }
-  
-    await this.postRepository.remove(post);
-  
-    return { message: '게시글 삭제 완료' };
   }
   
 
@@ -117,6 +150,51 @@ export class FreeCommunityService {
   }
 
   /**
+   * 좋아요 토글
+   * @param userId 
+   * @param postId 
+   * @returns 좋아요 상태 (true: 좋아요 추가됨, false: 좋아요 취소됨)
+   */
+  async toggleLike(userId: string, postId: number): Promise<boolean> {
+    console.log(`[toggleLike] 시작 - userId: ${userId}, postId: ${postId}`);
+    
+    const post = await this.postRepository.findOne({ where: { id: postId }});
+    if (!post) {
+      console.log(`[toggleLike] 실패 - 게시글을 찾을 수 없음: postId ${postId}`);
+      throw new NotFoundException('게시글을 찾을 수 없습니다');
+    }
+    console.log(`[toggleLike] 게시글 찾음: ${JSON.stringify(post)}`);
+  
+    const existing = await this.postLikeRepository.findOne({ 
+      where: { 
+        userId,
+        post: { id: postId }
+      }
+    });
+
+    if (existing) {
+      // 좋아요 취소
+      console.log(`[toggleLike] 좋아요 취소 - userId: ${userId}, postId: ${postId}`);
+      await this.postLikeRepository.remove(existing);
+      post.likesCount -= 1;
+      await this.postRepository.save(post);
+      console.log(`[toggleLike] 좋아요 취소 완료 - 현재 좋아요 수: ${post.likesCount}`);
+      return false;
+    } else {
+      // 좋아요 추가
+      console.log(`[toggleLike] 좋아요 추가 - userId: ${userId}, postId: ${postId}`);
+      const savedLike = await this.postLikeRepository.save({ 
+        userId,
+        post: { id: postId }
+      });
+      post.likesCount += 1;
+      await this.postRepository.save(post);
+      console.log(`[toggleLike] 좋아요 추가 완료 - 현재 좋아요 수: ${post.likesCount}`);
+      return true;
+    }
+  }
+  
+  /**
    * 인기순 게시판 목록 조회
    * @returns 
    */
@@ -133,66 +211,6 @@ export class FreeCommunityService {
   }
   
   /**
-   * 좋아요 기능
-   * @param userId 
-   * @param postId 
-   */
-  async likePost(userId: string, postId: number) {
-    const post = await this.postRepository.findOne({ where: { id: postId }});
-    if (!post) {
-      throw new NotFoundException('게시글을 찾을 수 없습니다');
-    }
-  
-    const existing = await this.postLikeRepository.findOne({ where: { userId, post }});
-    if (existing) {
-      throw new BadRequestException('이미 좋아요를 눌렀습니다');
-    }
-  
-    await this.postLikeRepository.save({ userId, post });
-    await this.postRepository.update(postId, {
-      likesCount: () => 'likes_count + 1',
-    });
-  }
-  
-  /**
-   * 좋아요 취소
-   * @param userId 
-   * @param postId 
-   */
-  async unlikePost(userId: string, postId: number) {
-    const post = await this.postRepository.findOne({ where: { id: postId }});
-    if (!post) {
-      throw new NotFoundException('게시글을 찾을 수 없습니다');
-    }
-  
-    const existing = await this.postLikeRepository.findOne({ where: { userId, post }});
-    if (!existing) {
-      throw new NotFoundException('좋아요한 적이 없습니다');
-    }
-  
-    await this.postLikeRepository.remove(existing);
-    await this.postRepository.update(postId, {
-      likesCount: () => 'likes_count - 1',
-    });
-  }
-  
-  /**
-   * 좋아요 여부 확인
-   * @param userId 
-   * @param postId 
-   * @returns 
-   */
-  async hasLiked(userId: string, postId: number): Promise<boolean> {
-    const post = await this.postRepository.findOne({ where: { id: postId }});
-    if (!post) {
-      throw new NotFoundException('게시글을 찾을 수 없습니다');
-    }
-  
-    const existing = await this.postLikeRepository.findOne({ where: { userId, post }});
-    return !!existing;
-  }
-  
-    /**
    * 댓글 or 대댓글 작성
    * @param userId 댓글 작성자
    * @param postId 게시글 ID
@@ -205,19 +223,36 @@ export class FreeCommunityService {
     content: string,
     parentId?: number,
   ) {
+    console.log(`[writeComment] 시작 - userId: ${userId}, postId: ${postId}, content: ${content}, parentId: ${parentId}`);
+    
     const post = await this.postRepository.findOne({ where: { id: postId }});
     if (!post) {
+      console.log(`[writeComment] 실패 - 게시글을 찾을 수 없음: postId ${postId}`);
       throw new NotFoundException('게시글이 존재하지 않습니다');
     }
+    console.log(`[writeComment] 게시글 찾음: ${JSON.stringify(post)}`);
 
     let level = 0;
 
     if (parentId) {
-      const parent = await this.postCommentRepository.findOne({ where: { id: parentId }});
-      if (!parent || parent.post.id !== postId) {
+      const parent = await this.postCommentRepository.findOne({ 
+        where: { id: parentId },
+        relations: ['post']
+      });
+      console.log(`[writeComment] 부모 댓글 찾음: ${JSON.stringify(parent)}`);
+      
+      if (!parent) {
+        console.log(`[writeComment] 실패 - 부모 댓글을 찾을 수 없음: parentId ${parentId}`);
+        throw new NotFoundException('부모 댓글을 찾을 수 없습니다');
+      }
+      
+      if (parent.post.id !== postId) {
+        console.log(`[writeComment] 실패 - 부모 댓글이 다른 게시글에 속함: parent.post.id ${parent.post.id}, postId ${postId}`);
         throw new BadRequestException('유효하지 않은 부모 댓글입니다');
       }
+      
       level = parent.level + 1;
+      console.log(`[writeComment] 댓글 레벨 설정: ${level}`);
     }
 
     const comment = this.postCommentRepository.create({
@@ -227,13 +262,16 @@ export class FreeCommunityService {
       parentId: parentId || null,
       level,
     });
+    console.log(`[writeComment] 댓글 생성: ${JSON.stringify(comment)}`);
 
-    await this.postCommentRepository.save(comment);
-    await this.postRepository.update(postId, {
-      commentsCount: () => 'comments_count + 1',
-    });
+    const savedComment = await this.postCommentRepository.save(comment);
+    console.log(`[writeComment] 댓글 저장됨: ${JSON.stringify(savedComment)}`);
+    
+    post.commentsCount += 1;
+    const updatedPost = await this.postRepository.save(post);
+    console.log(`[writeComment] 게시글 댓글 수 업데이트됨: ${updatedPost.commentsCount}`);
 
-    return comment;
+    return savedComment;
   }
 
   /**
@@ -288,72 +326,101 @@ export class FreeCommunityService {
    * @returns 
    */
   async deleteComment(userId: string, commentId: number) {
-    const comment = await this.postCommentRepository.findOne({
-      where: { id: commentId },
-      relations: ['post'],
-    });
-  
-    if (!comment) {
-      throw new NotFoundException('댓글이 존재하지 않습니다');
+    console.log(`[deleteComment] 시작 - userId: ${userId}, commentId: ${commentId}`);
+    
+    try {
+      const comment = await this.postCommentRepository.findOne({
+        where: { id: commentId },
+        relations: ['post'],
+      });
+    
+      if (!comment) {
+        console.log(`[deleteComment] 실패 - 댓글을 찾을 수 없음: commentId ${commentId}`);
+        return {
+          statusCode: 404,
+          message: '댓글이 존재하지 않습니다'
+        };
+      }
+    
+      if (comment.userId !== userId) {
+        console.log(`[deleteComment] 실패 - 권한 없음: comment.userId ${comment.userId}, userId ${userId}`);
+        return {
+          statusCode: 403,
+          message: '본인 댓글만 삭제할 수 있습니다'
+        };
+      }
+    
+      // 댓글 삭제
+      console.log(`[deleteComment] 댓글 삭제 시작`);
+      await this.postCommentRepository.remove(comment);
+      console.log(`[deleteComment] 댓글 삭제 완료`);
+    
+      // 게시글의 댓글 수 업데이트
+      const post = comment.post;
+      post.commentsCount -= 1;
+      await this.postRepository.save(post);
+      console.log(`[deleteComment] 게시글 댓글 수 업데이트 완료: ${post.commentsCount}`);
+    
+      return { 
+        statusCode: 200,
+        message: '댓글 삭제 완료' 
+      };
+    } catch (error) {
+      console.error(`[deleteComment] 삭제 중 오류 발생:`, error);
+      return {
+        statusCode: 500,
+        message: '댓글 삭제 중 오류가 발생했습니다'
+      };
     }
-  
-    if (comment.userId !== userId) {
-      throw new BadRequestException('본인 댓글만 삭제할 수 있습니다');
-    }
-  
-    await this.postCommentRepository.remove(comment);
-  
-    await this.postRepository.update(comment.post.id, {
-      commentsCount: () => 'comments_count - 1',
-    });
-  
-    return { message: '댓글 삭제 완료' };
   }
   
   /**
-   * 댓글 좋아요 추가
+   * 댓글 좋아요 토글
    * @param userId 
    * @param commentId 
+   * @returns 좋아요 상태 (true: 좋아요 추가됨, false: 좋아요 취소됨)
    */
-  async likeComment(userId: string, commentId: number) {
-    const comment = await this.postCommentRepository.findOne({ where: { id: commentId }});
-    if (!comment) {
-      throw new NotFoundException('댓글이 존재하지 않습니다');
-    }
-  
-    const existing = await this.commentLikeRepository.findOne({ where: { userId, comment }});
-    if (existing) {
-      throw new BadRequestException('이미 좋아요를 누른 댓글입니다');
-    }
-  
-    await this.commentLikeRepository.save({ userId, comment });
-    await this.postCommentRepository.update(commentId, {
-      likesCount: () => 'likes_count + 1',
+  async toggleCommentLike(userId: string, commentId: number): Promise<boolean> {
+    console.log(`[toggleCommentLike] 시작 - userId: ${userId}, commentId: ${commentId}`);
+    
+    const comment = await this.postCommentRepository.findOne({ 
+      where: { id: commentId }
     });
-  }
-  
-  /**
-   * 댓글 좋아요 취소
-   * @param userId 
-   * @param commentId 
-   */
-  async unlikeComment(userId: string, commentId: number) {
-    const comment = await this.postCommentRepository.findOne({ where: { id: commentId }});
     if (!comment) {
-      throw new NotFoundException('댓글이 존재하지 않습니다');
+      console.log(`[toggleCommentLike] 실패 - 댓글을 찾을 수 없음: commentId ${commentId}`);
+      throw new NotFoundException('댓글을 찾을 수 없습니다');
     }
+    console.log(`[toggleCommentLike] 댓글 찾음: ${JSON.stringify(comment)}`);
   
-    const existing = await this.commentLikeRepository.findOne({ where: { userId, comment }});
-    if (!existing) {
-      throw new NotFoundException('좋아요한 적이 없습니다');
-    }
-  
-    await this.commentLikeRepository.remove(existing);
-    await this.postCommentRepository.update(commentId, {
-      likesCount: () => 'likes_count - 1',
+    const existing = await this.commentLikeRepository.findOne({ 
+      where: { 
+        userId,
+        comment: { id: commentId }
+      }
     });
-  }
 
+    if (existing) {
+      // 좋아요 취소
+      console.log(`[toggleCommentLike] 좋아요 취소 - userId: ${userId}, commentId: ${commentId}`);
+      await this.commentLikeRepository.remove(existing);
+      comment.likesCount -= 1;
+      await this.postCommentRepository.save(comment);
+      console.log(`[toggleCommentLike] 좋아요 취소 완료 - 현재 좋아요 수: ${comment.likesCount}`);
+      return false;
+    } else {
+      // 좋아요 추가
+      console.log(`[toggleCommentLike] 좋아요 추가 - userId: ${userId}, commentId: ${commentId}`);
+      const savedLike = await this.commentLikeRepository.save({ 
+        userId,
+        comment: { id: commentId }
+      });
+      comment.likesCount += 1;
+      await this.postCommentRepository.save(comment);
+      console.log(`[toggleCommentLike] 좋아요 추가 완료 - 현재 좋아요 수: ${comment.likesCount}`);
+      return true;
+    }
+  }
+  
   /**
    * 댓글 좋아요 여부 확인
    * @param userId 
@@ -361,13 +428,50 @@ export class FreeCommunityService {
    * @returns 
    */
   async hasLikedComment(userId: string, commentId: number): Promise<boolean> {
-    const comment = await this.postCommentRepository.findOne({ where: { id: commentId }});
+    console.log(`[hasLikedComment] 시작 - userId: ${userId}, commentId: ${commentId}`);
+    
+    const comment = await this.postCommentRepository.findOne({ 
+      where: { id: commentId }
+    });
     if (!comment) {
-      throw new NotFoundException('댓글이 존재하지 않습니다');
+      console.log(`[hasLikedComment] 실패 - 댓글을 찾을 수 없음: commentId ${commentId}`);
+      throw new NotFoundException('댓글을 찾을 수 없습니다');
     }
+    console.log(`[hasLikedComment] 댓글 찾음: ${JSON.stringify(comment)}`);
   
-    const existing = await this.commentLikeRepository.findOne({ where: { userId, comment }});
+    const existing = await this.commentLikeRepository.findOne({ 
+      where: { 
+        userId,
+        comment: { id: commentId }
+      }
+    });
+    console.log(`[hasLikedComment] 좋아요 여부: ${!!existing}`);
     return !!existing;
   }
   
+  /**
+   * 좋아요 여부 확인
+   * @param userId 
+   * @param postId 
+   * @returns 
+   */
+  async hasLiked(userId: string, postId: number): Promise<boolean> {
+    console.log(`[hasLiked] 시작 - userId: ${userId}, postId: ${postId}`);
+    
+    const post = await this.postRepository.findOne({ where: { id: postId }});
+    if (!post) {
+      console.log(`[hasLiked] 실패 - 게시글을 찾을 수 없음: postId ${postId}`);
+      throw new NotFoundException('게시글을 찾을 수 없습니다');
+    }
+    console.log(`[hasLiked] 게시글 찾음: ${JSON.stringify(post)}`);
+  
+    const existing = await this.postLikeRepository.findOne({ 
+      where: { 
+        userId,
+        post: { id: postId }
+      }
+    });
+    console.log(`[hasLiked] 좋아요 여부: ${!!existing}`);
+    return !!existing;
+  }
 }

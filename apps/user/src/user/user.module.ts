@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
 import { Interest } from './entity/interest.entity';
-import { UserGrpcController } from './user.grpc.controller';
+import { UserTcpController } from './user.tcp.controller';
 
 @Module({
   imports: [
@@ -13,7 +12,7 @@ import { UserGrpcController } from './user.grpc.controller';
       Interest
     ]),
   ],
-  controllers: [UserController, UserGrpcController],
+  controllers: [UserTcpController],
   providers: [UserService],
   exports: [UserService]
 })

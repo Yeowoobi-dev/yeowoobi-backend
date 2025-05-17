@@ -1,42 +1,88 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { ClientGrpc } from '@nestjs/microservices';
-import { UserServiceClient, CreateNicknameRequest, CreateNicknameResponse } from './interfaces/user.interface';
-import { lastValueFrom } from 'rxjs';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService {
-  private userService: UserServiceClient;
-
-  constructor(@Inject('USER_SERVICE') private client: ClientGrpc) {}
-
-  onModuleInit() {
-    this.userService = this.client.getService<UserServiceClient>('UserService');
-  }
+  constructor(
+    @Inject('USER_SERVICE') private readonly userClient: ClientProxy,
+  ) {}
 
   async findBySocialId(socialId: string, socialType: string) {
-    return lastValueFrom(this.userService.findBySocialId({ social_id: socialId, social_type: socialType }));
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'findBySocialId' }, { social_id: socialId, social_type: socialType })
+    );
   }
 
-  async createUser(data: { social_id: string; email: string; name: string; social_type: string }) {
-    return lastValueFrom(this.userService.createUser(data));
+  async createUser(data: any) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'createUser' }, data)
+    );
   }
 
-  async createNickname(data: CreateNicknameRequest): Promise<CreateNicknameResponse> {
-    console.log('1차 data', data);
-    const result = await lastValueFrom(this.userService.createNickname(data));
-    console.log('2차 result', result);
-    return { nickname: result.nickname };
+  async createNickname(data: { userId: string; nickname: string }) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'createNickname' }, data)
+    );
   }
 
   async createIntroduce(data: { userId: string; introduce: string }) {
-    return lastValueFrom(this.userService.createIntroduce(data));
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'createIntroduce' }, data)
+    );
   }
 
   async saveInterests(data: { userId: string; interestNames: string[] }) {
-    return lastValueFrom(this.userService.saveInterests(data));
-  } 
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'saveInterests' }, data)
+    );
+  }
 
   async findInterests(data: { userId: string }) {
-    return lastValueFrom(this.userService.findInterests(data));
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'findInterests' }, data)
+    );
+  }
+
+  async getUser(id: number) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'getUser' }, { id })
+    );
+  }
+
+  async updateUser(id: number, updateData: any) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'updateUser' }, { id, updateData })
+    );
+  }
+
+  async deleteUser(id: number) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'deleteUser' }, { id })
+    );
+  }
+
+  async followUser(currentUserId: string, targetUserId: string) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'followUser' }, { currentUserId, targetUserId })
+    );
+  }
+
+  async unfollowUser(currentUserId: string, targetUserId: string) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'unfollowUser' }, { currentUserId, targetUserId })
+    );
+  }
+
+  async findFollower(userId: string) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'findFollower' }, { userId })
+    );
+  }
+
+  async findFollowing(userId: string) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'findFollowing' }, { userId })
+    );
   }
 }

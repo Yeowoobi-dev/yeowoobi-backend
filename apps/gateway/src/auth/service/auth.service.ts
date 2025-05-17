@@ -15,6 +15,7 @@ export class AuthService {
  * 1 시간
  */
   async generateJwtToken(user: AuthUserDto) {
+    console.log('generateJwtToken', user);
     const payload = { id: user.id, 
       // email: user.email 일단 userId 만
     };

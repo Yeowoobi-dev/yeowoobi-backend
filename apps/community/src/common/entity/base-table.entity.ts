@@ -1,7 +1,7 @@
-import { CreateDateColumn, UpdateDateColumn, VersionColumn } from "typeorm";
+import { CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Exclude } from "class-transformer"
 
-export class BaseTable{
+export class BaseTable {
   @CreateDateColumn()
   @Exclude()
   createdAt: Date;
@@ -9,8 +9,4 @@ export class BaseTable{
   @UpdateDateColumn()
   @Exclude()
   updatedAt: Date;
-
-  @VersionColumn()
-  @Exclude()
-  version: number;
 }

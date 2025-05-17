@@ -1,8 +1,15 @@
 import { NestFactory } from '@nestjs/core';
-import { FreeCommunityModule } from './free-community/free-community.module';
+import { AppModule } from './app.module';
+import { Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.create(FreeCommunityModule);
-  await app.listen(process.env.port ?? 3000);
+  const app = await NestFactory.createMicroservice(AppModule, {
+    transport: Transport.TCP,
+    options: {
+      host: '0.0.0.0',
+      port: 5002,
+    },
+  });
+  await app.listen();
 }
 bootstrap();

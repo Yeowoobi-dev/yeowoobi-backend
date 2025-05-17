@@ -3,7 +3,7 @@ import { AuthUserDto } from "../../common/dto/base-authUser.dto";
 
 export class CreateUserDto {
 
-  socialId: string;
+  social_id: string;
 
   @IsEmail()
   email: string;
@@ -11,5 +11,5 @@ export class CreateUserDto {
   @IsString()
   name: string;
 
-  socialType: string;
+  social_type: string;
 }

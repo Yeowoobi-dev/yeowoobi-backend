@@ -5,44 +5,52 @@ services:
     build:
       context: .
       dockerfile: ./apps/gateway/Dockerfile
-      target: development
-    command: pnpm run start:dev gateway # 도커 컴포즈 커맨드로 오버라이드 됨
+      target: production
+    command: pnpm run start:prod:gateway
     env_file:
       - ./apps/gateway/.env
     ports:
-      - '3000:3000'  # HTTP와 gRPC 모두 사용
-    volumes:
-      - .:/usr/src/app 
-      - ./proto:/usr/src/app/proto
+      - '3000:3000'  # HTTP 포트
+    networks:
+      - backend
+    # volumes:
+    #   - .:/usr/src/app 
+    #   - ./proto:/usr/src/app/proto
       # - /usr/src/app/node_modules
+    restart: always
   user:
     build:
       context: .
       dockerfile: ./apps/user/Dockerfile
-      target: development
-    command: pnpm run start:dev user # 도커 컴포즈 커맨드로 오버라이드 됨
+      target: production
+    command: pnpm run start:prod:user
     depends_on:
       postgres_user:
         condition: service_healthy
     env_file:
       - ./apps/user/.env
     ports:
-      - '3001:3000'  # HTTP와 gRPC 모두 사용
-    volumes:
-      - .:/usr/src/app 
-      - ./proto:/usr/src/app/proto
+      # - '3001:3000'  # HTTP 포트
+    networks:
+      - backend
+    # volumes:
+    #   - .:/usr/src/app 
+    #   - ./proto:/usr/src/app/proto
       # - /usr/src/app/node_modules
+    restart: always
 
   postgres_user:
     image: postgres:16
     env_file:
       - ./apps/user/.env
+    networks:
+      - backend
     # environment:
     #   POSTGRES_USER: ${POSTGRES_USER}
     #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     #   POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - '6001:5432'
+      # - '6001:5432'
     volumes:
       - ./postgres/user:/var/lib/postgresql/data
     healthcheck:
@@ -52,22 +60,27 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
+    restart: always
 
   book-log:
     build: 
       context: .
       dockerfile: ./apps/book-log/Dockerfile
-      target: development
-    command: pnpm run start:dev book-log
+      target: production
+    command: pnpm run start:prod:book-log
     depends_on:
       postgres_book-log:
         condition: service_healthy
     env_file:
       - ./apps/book-log/.env
     ports:
-      - '3002:3000'
-    volumes:
-      - .:/usr/src/app
+      # - '3002:3000'  # HTTP 포트
+    networks:
+      - backend
+    # volumes:
+    #   - .:/usr/src/app
+    #   - ./proto:/usr/src/app/proto
+    restart: always
 
   postgres_book-log:
     image: postgres:16
@@ -78,7 +91,7 @@ services:
       POSTGRES_PASSWORD: yeowoo1234!@
       POSTGRES_DB: yeowoobi-booklog-db
     ports:
-      - '6002:5432'
+      # - '6002:5432'
     volumes:
       - ./postgres/book-log:/var/lib/postgresql/data
     healthcheck:
@@ -88,3 +101,48 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
+    networks:
+      - backend
+    restart: always
+
+  community:
+    build:
+      context: .
+      dockerfile: ./apps/community/Dockerfile
+      target: production
+    command: pnpm run start:prod:community
+    depends_on:
+      postgres_community:
+        condition: service_healthy
+    env_file:
+      - ./apps/community/.env
+    ports:
+      # - '3003:3000'  # HTTP 포트
+    networks:
+      - backend
+    # volumes:
+    #   - .:/usr/src/app
+    #   - ./proto:/usr/src/app/proto
+    restart: always
+
+  postgres_community:
+    image: postgres:16
+    env_file:
+      - ./apps/community/.env
+    environment:
+      POSTGRES_USER: yeowoo
+      POSTGRES_PASSWORD: yeowoo1234!@
+      POSTGRES_DB: yeowoobi-community-db
+    ports:
+      # - '6003:5432'
+    volumes:
+      - ./postgres/community:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d yeowoobi-community-db -U yeowoo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - backend
+    restart: always

@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Req, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from '@nestjs/passport';
-import { lastValueFrom } from 'rxjs';
+import { FollowDto } from './dto/follow.dto';
+import { FollowerResponseDto } from './dto/follower-response.dto';
+
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -25,7 +27,7 @@ export class UserController {
 
   @Post('interest')
   @UseGuards(AuthGuard('jwt'))
-  async saveInterests(@Req() req, @Body() data: { interestNames: string[] }) {
+  async saveUserInterests(@Req() req, @Body() data: { interestNames: string[] }) {
     const userId = req.user.userId;
     return this.userService.saveInterests({ userId, ...data });
   }
@@ -34,6 +36,53 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   async findInterests(@Req() req) {
     const userId = req.user.userId;
-    return this.userService.findInterests({ userId });
+    return this.userService.findInterests(userId);
+  }
+
+  @Post('follow')
+  @UseGuards(AuthGuard('jwt'))
+  async follow(@Req() req, @Body() targetDto: FollowDto) {
+    const currentUserId = req.user.userId;
+    const follow = await this.userService.followUser(currentUserId, targetDto.targetUserId);
+    return { follower: follow.follower, following: follow.following };
+  }
+
+  @Delete('follow/:targetUserId')
+  @UseGuards(AuthGuard('jwt'))
+  async unfollow(@Req() req, @Param() params: FollowDto) {
+    const currentUserId = req.user.userId;
+    const { targetUserId } = params;
+    await this.userService.unfollowUser(currentUserId, targetUserId);
+    return { text: '언팔로우 성공' };
+  }
+
+  @Get('followers')
+  @UseGuards(AuthGuard('jwt'))
+  async followerList(@Req() req): Promise<{ followers: FollowerResponseDto[] }> {
+    const currentUserId = req.user.userId;
+    const followerRecords = await this.userService.findFollower(currentUserId);
+    
+    const followers = followerRecords.map(follow => ({
+      id: follow.follower?.id || null,
+      name: follow.follower?.name || null, 
+      nickname: follow.follower?.nickname || null,
+    }));
+
+    return { followers: followers || [] };
+  }
+
+  @Get('following')
+  @UseGuards(AuthGuard('jwt'))
+  async followingList(@Req() req): Promise<{ followingList: FollowerResponseDto[] }> {
+    const currentUserId = req.user.userId;
+    const followingRecords = await this.userService.findFollowing(currentUserId);
+    
+    const followingList = followingRecords.map(follow => ({
+      id: follow.following?.id || null,
+      name: follow.following?.name || null,
+      nickname: follow.following?.nickname || null,
+    }));
+
+    return { followingList: followingList || [] };
   }
 }
