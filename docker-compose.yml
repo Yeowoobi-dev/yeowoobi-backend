@@ -13,10 +13,6 @@ services:
       - '3000:3000'  # HTTP 포트
     networks:
       - backend
-    # volumes:
-    #   - .:/usr/src/app 
-    #   - ./proto:/usr/src/app/proto
-      # - /usr/src/app/node_modules
     restart: always
   user:
     build:
@@ -29,14 +25,8 @@ services:
         condition: service_healthy
     env_file:
       - ./apps/user/.env
-    ports:
-      # - '3001:3000'  # HTTP 포트
     networks:
       - backend
-    # volumes:
-    #   - .:/usr/src/app 
-    #   - ./proto:/usr/src/app/proto
-      # - /usr/src/app/node_modules
     restart: always
 
   postgres_user:
@@ -45,16 +35,9 @@ services:
       - ./apps/user/.env
     networks:
       - backend
-    # environment:
-    #   POSTGRES_USER: ${POSTGRES_USER}
-    #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      # - '6001:5432'
     volumes:
       - ./postgres/user:/var/lib/postgresql/data
     healthcheck:
-      # test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
       test: ["CMD-SHELL", "pg_isready -d yeowoobi-db -U yeowoo"]
       interval: 5s
       timeout: 5s
@@ -73,13 +56,8 @@ services:
         condition: service_healthy
     env_file:
       - ./apps/book-log/.env
-    ports:
-      # - '3002:3000'  # HTTP 포트
     networks:
       - backend
-    # volumes:
-    #   - .:/usr/src/app
-    #   - ./proto:/usr/src/app/proto
     restart: always
 
   postgres_book-log:
@@ -90,12 +68,9 @@ services:
       POSTGRES_USER: yeowoo
       POSTGRES_PASSWORD: yeowoo1234!@
       POSTGRES_DB: yeowoobi-booklog-db
-    ports:
-      # - '6002:5432'
     volumes:
       - ./postgres/book-log:/var/lib/postgresql/data
     healthcheck:
-      # test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
       test: ["CMD-SHELL", "pg_isready -d yeowoobi-booklog-db -U yeowoo"]
       interval: 5s
       timeout: 5s
@@ -116,13 +91,8 @@ services:
         condition: service_healthy
     env_file:
       - ./apps/community/.env
-    ports:
-      # - '3003:3000'  # HTTP 포트
     networks:
       - backend
-    # volumes:
-    #   - .:/usr/src/app
-    #   - ./proto:/usr/src/app/proto
     restart: always
 
   postgres_community:
@@ -133,8 +103,6 @@ services:
       POSTGRES_USER: yeowoo
       POSTGRES_PASSWORD: yeowoo1234!@
       POSTGRES_DB: yeowoobi-community-db
-    ports:
-      # - '6003:5432'
     volumes:
       - ./postgres/community:/var/lib/postgresql/data
     healthcheck:
