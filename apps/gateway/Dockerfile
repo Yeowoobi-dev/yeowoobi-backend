@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /usr/src/app
 
 COPY package*.json ./
@@ -9,7 +9,7 @@ RUN pnpm install
 COPY . .
 RUN pnpm build
 
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/app ./
