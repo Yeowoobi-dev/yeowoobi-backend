@@ -7,7 +7,7 @@ RUN npm install -g pnpm
 RUN pnpm install
 
 COPY . .
-RUN pnpm build
+RUN pnpm build book-log
 
 FROM node:20-alpine AS production
 WORKDIR /usr/src/app
