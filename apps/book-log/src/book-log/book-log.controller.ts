@@ -18,6 +18,35 @@ export class BookLogController {
     return await this.bookLogService.searchBooks(query, display, start);
   }
 
+  @Post('log')
+  async createBookLog(
+    @Req() req,
+    @Body() createBookLogDto: {
+      title: string;
+      background: string;
+      content: string;
+      bookTitle: string;
+      bookImage: string;
+      author: string;
+      publisher: string;
+    }
+  ) {
+    // 프론트 데이터를 엔티티 형식으로 변환
+    const bookLogData = {
+      userId: req.user.id,
+      logTitle: createBookLogDto.title,
+      text: createBookLogDto.content,
+      review: createBookLogDto.background,
+      bookTitle: createBookLogDto.bookTitle,
+      bookImage: createBookLogDto.bookImage,
+      author: createBookLogDto.author,
+      publisher: createBookLogDto.publisher,
+      visibility: 'public' as const
+    };
+
+    return await this.bookLogService.createBookLog(bookLogData);
+  }
+
   
   // 특정 독서록 상세 조회 ?
 

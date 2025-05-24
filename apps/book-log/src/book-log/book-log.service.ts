@@ -21,6 +21,21 @@ export class BookLogService {
 
   private readonly baseUrl: string = 'https://openapi.naver.com/v1/search/book.json';
 
+  async createBookLog(createBookLogDto: {
+    userId: string;
+    logTitle: string;
+    text: string;
+    review: string;
+    bookTitle: string;
+    bookImage: string;
+    author: string;
+    publisher: string;
+    visibility: 'public' | 'private' | 'followers';
+  }) {
+    const bookLog = this.bookLogRepository.create(createBookLogDto);
+    return await this.bookLogRepository.save(bookLog);
+  }
+
   /** 외부 api라서 나중에 따로 서비스 뺄지 고민
    * 네이버 도서 검색 api service
    * @param query 
@@ -63,64 +78,4 @@ export class BookLogService {
       throw error;
     }
   }
-
-  // /**
-  //  * 
-  //  * @param userId 
-  //  * @param bookLog 
-  //  * @returns 
-  //  *  기록될 독서록 정보 반환
-  //  */
-  // async saveBookInfo(userId: string, bookLog: SaveBookLogDto) {
-  //   const result = await this.bookLogRepository.save({
-  //     userId,
-  //     logTitle: bookLog.logTitle,
-  //     text: bookLog.text,
-  //     category: bookLog.category,
-  //     bookTitle: bookLog.bookTitle,
-  //     bookImage: bookLog.bookImage,
-  //     author: bookLog.author,
-  //     publisher: bookLog.publisher,
-  //   })
-  //   // if (result.affected === 0){
-  //   //   throw new NotFoundException(`User not found`);
-  //   // }
-
-  //   return { bookLog }
-  // };
-
-  // async createBookLog(createBookLogDto: CreateBookLogDto): Promise<BookLog> {
-  //   const bookLog = this.bookLogRepository.create(createBookLogDto);
-  //   return await this.bookLogRepository.save(bookLog);
-  // }
-
-  // async findBookLogs(userId: number): Promise<BookLog[]> {
-  //   return await this.bookLogRepository.find({
-  //     where: { userId },
-  //     relations: ['book'],
-  //   });
-  // }
-
-  // async findBookLog(id: number): Promise<BookLog> {
-  //   return await this.bookLogRepository.findOne({
-  //     where: { id },
-  //     relations: ['book'],
-  //   });
-  // }
-
-  // async updateBookLog(id: number, updateBookLogDto: UpdateBookLogDto): Promise<BookLog> {
-  //   await this.bookLogRepository.update(id, updateBookLogDto);
-  //   return await this.findBookLog(id);
-  // }
-
-  // async deleteBookLog(id: number): Promise<void> {
-  //   await this.bookLogRepository.delete(id);
-  // }
-
-  // async findBookLogsByBookId(bookId: number): Promise<BookLog[]> {
-  //   return await this.bookLogRepository.find({
-  //     where: { bookId },
-  //     relations: ['user'],
-  //   });
-  // }
 }

@@ -3,7 +3,9 @@ import { AuthService } from './service/auth.service';
 import { KakaoAuthGuard } from './guard/kakao-auth.guard';
 import { KakaoAuthService } from './service/kakao-auth.service';
 import { GrpcMethod } from '@nestjs/microservices';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(

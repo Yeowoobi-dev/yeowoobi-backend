@@ -11,12 +11,12 @@
     "start:dev:user": "nest start --watch --project user",
     "start:dev:book-log": "nest start --watch --project book-log",
     "start:dev:community": "nest start --watch --project community",
-
+    "start:dev:book-recommendation": "nest start --watch --project book-recommendation",
     "start:prod:gateway": "node dist/apps/gateway/main.js",
     "start:prod:user": "node dist/apps/user/main.js",
     "start:prod:book-log": "node dist/apps/book-log/main.js",
     "start:prod:community": "node dist/apps/community/main.js",
-
+    "start:prod:book-recommendation": "node dist/apps/book-recommendation/main.js",
     "build": "nest build"
   },
   "dependencies": {
@@ -38,6 +38,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "joi": "^17.13.3",
+    "openai": "^4.100.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-kakao": "^1.0.1",
