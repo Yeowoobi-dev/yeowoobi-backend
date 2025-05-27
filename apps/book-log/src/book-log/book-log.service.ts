@@ -26,14 +26,21 @@ export class BookLogService {
     logTitle: string;
     text: string;
     review: string;
+    background: string;
     bookTitle: string;
     bookImage: string;
     author: string;
     publisher: string;
     visibility: 'public' | 'private' | 'followers';
   }) {
+    console.log("createBookLogDto::::::::::::::", createBookLogDto);
     const bookLog = this.bookLogRepository.create(createBookLogDto);
+    console.log("bookLog::::::::::::::", bookLog);
     return await this.bookLogRepository.save(bookLog);
+  }
+
+  async getBookLog(userId: string) {
+    return await this.bookLogRepository.find({ where: { userId } });
   }
 
   /** 외부 api라서 나중에 따로 서비스 뺄지 고민
@@ -77,5 +84,12 @@ export class BookLogService {
       console.error('API error:', error.response?.data || error.message);
       throw error;
     }
+  }
+
+  async findBookLogs(userId: string) {
+    return await this.bookLogRepository.find({
+      where: { userId },
+      order: { createdAt: 'DESC' }
+    });
   }
 }

@@ -91,4 +91,43 @@ export class BookLogTcpController {
       throw error;
     }
   }
+
+  @MessagePattern({ cmd: 'createBookLog' })
+  async createBookLog(@Payload() data: {
+    userId: string;
+    logTitle: string;
+    text: string;
+    review: string;
+    bookTitle: string;
+    bookImage: string;
+    background: string;
+    author: string;
+    publisher: string;
+    visibility: 'public' | 'private' | 'followers';
+  }) {
+    console.log('Received create book log request:', data);
+    try {
+      if (!data || typeof data !== 'object' || !data.userId || !data.logTitle) {
+        throw new BadRequestException('Invalid message format: userId and logTitle are required');
+      }
+      const result = await this.bookLogService.createBookLog(data);
+      console.log('Create book log result:', result);
+      return result;
+    } catch (error) {
+      console.error('Create book log error:', error);
+      throw error;
+    }
+  }
+
+  @MessagePattern({ cmd: 'getBookLog' })
+  async getBookLog(@Payload() data: { userId: string }) {
+    try {
+      if (!data || typeof data !== 'object' || !data.userId) {
+        throw new BadRequestException('Invalid message format: userId is required');
+      }
+      return await this.bookLogService.getBookLog(data.userId);
+    } catch (error) {
+      throw error;
+    }
+  }
 } 
