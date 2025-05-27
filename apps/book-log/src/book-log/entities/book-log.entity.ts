@@ -8,7 +8,7 @@ export class BookLog {
   @Column()
   userId: string;
 
-  @Column()
+  @Column({ nullable: true })
   logTitle: string;
 
   @Column({ nullable: true })
@@ -20,7 +20,7 @@ export class BookLog {
   @Column({ nullable: true })
   category: string;
 
-  @Column()
+  @Column({ nullable: true })
   bookTitle: string;
 
   @Column({ nullable: true })
