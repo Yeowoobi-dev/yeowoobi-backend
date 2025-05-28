@@ -10,11 +10,14 @@ export class BookLog extends BaseTable {
   @Column()
   userId: string;
 
-  @Column()
+  @Column({ nullable: true })
   logTitle: string;
 
   @Column({type: "text", nullable: true})
   text: string;
+
+  @Column({type: "text", nullable: true})
+  background: string;
 
   @Column({length: 255, nullable: true})
   review: string;
@@ -23,16 +26,16 @@ export class BookLog extends BaseTable {
   @Column({nullable: true})
   category: string;
 
-  @Column()
+  @Column({ nullable: true })
   bookTitle: string;
 
-  @Column()
+  @Column({ nullable: true })
   bookImage: string;
 
-  @Column({length: 50})
+  @Column({length: 50, nullable: true})
   author: string;
 
-  @Column({length: 50})
+  @Column({length: 50, nullable: true})
   publisher: string;
 
   @Index() // 공개 범위 필터링 최적화

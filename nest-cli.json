@@ -48,6 +48,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/community/tsconfig.app.json"
       }
+    },
+    "book-recommendation": {
+      "type": "application",
+      "root": "apps/book-recommendation",
+      "entryFile": "main",
+      "sourceRoot": "apps/book-recommendation/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/book-recommendation/tsconfig.app.json"
+      }
     }
   }
 }

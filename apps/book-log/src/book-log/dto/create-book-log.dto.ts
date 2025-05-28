@@ -16,17 +16,17 @@ export class CreateBookLogDto {
   category?: string;
 
   @IsString()
-  bookTitle: string;
+  bookTitle?: string;
 
   @IsString()
   @IsOptional()
   bookImage?: string;
 
   @IsString()
-  author: string;
+  author?: string;
 
   @IsString()
-  publisher: string;
+  publisher?: string;
 
   @IsString()
   @IsOptional()

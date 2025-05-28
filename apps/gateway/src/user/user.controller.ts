@@ -3,7 +3,9 @@ import { UserService } from './user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { FollowDto } from './dto/follow.dto';
 import { FollowerResponseDto } from './dto/follower-response.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('user')
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}

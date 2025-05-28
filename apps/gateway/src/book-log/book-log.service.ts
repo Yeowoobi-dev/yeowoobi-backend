@@ -20,4 +20,27 @@ export class BookLogService {
       this.bookLogClient.send({ cmd: 'saveBookInfo' }, { userId, bookLog }),
     );
   }
+
+  async createBookLog(data: {
+    userId: string;
+    logTitle: string;
+    text: string;
+    background: string;
+    review: string;
+    bookTitle: string;
+    bookImage: string;
+    author: string;
+    publisher: string;
+    visibility: 'public' | 'private' | 'followers';
+  }) {
+    return await firstValueFrom(
+      this.bookLogClient.send({ cmd: 'createBookLog' }, data)
+    );
+  }
+
+  async getBookLog(userId: string) {
+    return await firstValueFrom(
+      this.bookLogClient.send({ cmd: 'getBookLog' }, { userId })
+    );
+  }
 }
