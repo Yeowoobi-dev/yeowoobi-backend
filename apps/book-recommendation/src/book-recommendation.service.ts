@@ -1,12 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class BookRecommendationService {
   private readonly openai: OpenAI;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
+  ) {
     this.openai = new OpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
     });
@@ -66,15 +71,78 @@ ${userAnswers.join(", ")}
       const jsonEnd = raw.lastIndexOf('}');
       const jsonString = raw.slice(jsonStart, jsonEnd + 1);
 
+      //////////////////////
+      const parsed = JSON.parse(jsonString);
+
+      const query = `${parsed.title} ${parsed.author}`
+      const books = await this.searchBooks(query);
+
+      const matched = books.items.find(item => {
+        const cleanTitle = item.title.replace(/<[^>]*>/g, '');
+        const cleanAuthor = item.author.replace(/<[^>]*>/g, '');
+        return cleanTitle.includes(parsed.title) && cleanAuthor.includes(parsed.author);
+      }) || books.items[0]; 
+  
+      parsed.image = matched?.image || null;
+      parsed.publisher = matched?.publisher || null;
+      //////////////////////
       try {
-        return JSON.parse(jsonString);
+        return {
+          title: parsed.title,
+          author: parsed.author,
+          image: matched?.image || null,
+          publisher: matched?.publisher || null,
+          description: parsed.description,
+          ment: parsed.ment,
+        };
       } catch (parseError) {
-        console.error("GPT 원본 응답:", raw); // 로그로 찍어 확인 가능
         throw new Error('응답을 JSON으로 파싱할 수 없습니다.');
       }
-      console.log(response);
     } catch (error) {
       throw new Error(`책 추천 중 오류가 발생했습니다: ${error.message}`);
+    }
+  }
+
+  /** 
+   * 네이버 도서 검색 api service
+   * @param query 
+   * @param display 
+   * @param start 
+   * @returns 
+   */
+  async searchBooks(query: string, display: number = 1, start: number = 1) {
+    console.log('Searching books with params:', { query, display, start });
+    
+    const clientId = this.configService.get<string>('NAVER_CLIENT_ID');
+    const clientSecret = this.configService.get<string>('NAVER_SECRET');
+    
+    console.log('Using credentials:', { 
+      clientId: clientId ? 'set' : 'not set', 
+      clientSecret: clientSecret ? 'set' : 'not set',
+      actualClientId: clientId,
+      actualClientSecret: clientSecret
+    });
+    
+    const headers = {
+      'X-Naver-Client-Id': clientId,
+      'X-Naver-Client-Secret': clientSecret,
+    };
+    
+    console.log('Request headers:', headers);
+    
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `https://openapi.naver.com/v1/search/book.json?query=${encodeURIComponent(query)}&display=${display}&start=${start}`,
+          { headers }
+        ),
+      );
+      
+      console.log('API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API error:', error.response?.data || error.message);
+      throw error;
     }
   }
 }

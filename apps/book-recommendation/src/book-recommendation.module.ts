@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { BookRecommendationController } from './book-recommendation.controller';
 import { BookRecommendationService } from './book-recommendation.service';
 import * as Joi from 'joi';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import * as Joi from 'joi';
         OPENAI_API_KEY: Joi.string().required(),
       }),
     }),
+    HttpModule,
   ],
   controllers: [BookRecommendationController],
   providers: [BookRecommendationService],

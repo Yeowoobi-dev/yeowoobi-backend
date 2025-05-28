@@ -111,6 +111,19 @@ services:
       - backend
     restart: always
 
+  book-recommendation:
+    build:
+      context: .
+      dockerfile: ./apps/book-recommendation/Dockerfile
+      target: production
+    env_file:
+      - ./apps/book-recommendation/.env
+    ports:
+      - '3001:3001'
+    networks:
+      - backend
+    restart: always
+
 networks:
   backend:
     driver: bridge
