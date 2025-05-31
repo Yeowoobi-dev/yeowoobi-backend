@@ -36,4 +36,9 @@ export class UserTcpController {
   async findInterests(@Payload() data: { userId: string }) {
     return this.userService.findInterests(data.userId);
   }
+
+  @MessagePattern({ cmd: 'getUser' })
+  async getUser(@Payload() data: { id: string }) {
+    return this.userService.getUser(data.id);
+  }
 } 
