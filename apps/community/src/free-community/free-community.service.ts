@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
 import { Post } from './entity/post.entity';
@@ -6,6 +6,8 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { PostLike } from './entity/post-like.entity';
 import { PostComment } from './entity/post-comment.entity';
 import { CommentLike } from './entity/comment-like.entity';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class FreeCommunityService {
@@ -18,6 +20,7 @@ export class FreeCommunityService {
     private readonly postCommentRepository: Repository<PostComment>,
     @InjectRepository(CommentLike)
     private readonly commentLikeRepository: Repository<CommentLike>,
+    @Inject('USER_SERVICE') private readonly userClient: ClientProxy,
   ) {}
 
   /**
@@ -122,10 +125,21 @@ export class FreeCommunityService {
    * @param postId 
    * @returns 게시글 객체 또는 undefined
    */
-  async getPostById(postId: number): Promise<Post | undefined> {
-    return await this.postRepository.findOne({
+  async getPostById(postId: number): Promise<any> {
+    const post = await this.postRepository.findOne({
       where: { id: postId },
     });
+
+    if (!post) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다');
+    }
+
+    // 작성자 정보 추가
+    const userInfo = await this.getUserInfo(post.authorId);
+    return {
+      ...post,
+      authorNickname: userInfo?.nickname || '알 수 없음',
+    };
   }
   /**
    * 최신순 게시판 목록 조회 
@@ -133,20 +147,34 @@ export class FreeCommunityService {
    * @returns 
    */
   async getPosts(lastPostId?: number) {
-    const take = 10; // 한 번에 가져올 개수
+    const take = 10;
   
+    let posts;
     if (lastPostId) {
-      return await this.postRepository.find({
+      posts = await this.postRepository.find({
         where: { id: LessThan(lastPostId) },
         order: { createdAt: 'DESC' },
         take: take,
       });
+    } else {
+      posts = await this.postRepository.find({
+        order: { createdAt: 'DESC' },
+        take: take,
+      });
     }
-  
-    return await this.postRepository.find({
-      order: { createdAt: 'DESC' },
-      take: take,
-    });
+
+    // 각 게시글에 작성자 정보 추가
+    const postsWithUserInfo = await Promise.all(
+      posts.map(async (post) => {
+        const userInfo = await this.getUserInfo(post.authorId);
+        return {
+          ...post,
+          authorNickname: userInfo?.nickname || '알 수 없음',
+        };
+      })
+    );
+
+    return postsWithUserInfo;
   }
 
   /**
@@ -155,7 +183,7 @@ export class FreeCommunityService {
    * @param postId 
    * @returns 좋아요 상태 (true: 좋아요 추가됨, false: 좋아요 취소됨)
    */
-  async toggleLike(userId: string, postId: number): Promise<boolean> {
+  async toggleLike(userId: string, postId: number): Promise<{ isLiked: boolean; likesCount: number }> {
     console.log(`[toggleLike] 시작 - userId: ${userId}, postId: ${postId}`);
     
     const post = await this.postRepository.findOne({ where: { id: postId }});
@@ -179,7 +207,7 @@ export class FreeCommunityService {
       post.likesCount -= 1;
       await this.postRepository.save(post);
       console.log(`[toggleLike] 좋아요 취소 완료 - 현재 좋아요 수: ${post.likesCount}`);
-      return false;
+      return { isLiked: false, likesCount: post.likesCount };
     } else {
       // 좋아요 추가
       console.log(`[toggleLike] 좋아요 추가 - userId: ${userId}, postId: ${postId}`);
@@ -190,7 +218,7 @@ export class FreeCommunityService {
       post.likesCount += 1;
       await this.postRepository.save(post);
       console.log(`[toggleLike] 좋아요 추가 완료 - 현재 좋아요 수: ${post.likesCount}`);
-      return true;
+      return { isLiked: true, likesCount: post.likesCount };
     }
   }
   
@@ -198,16 +226,29 @@ export class FreeCommunityService {
    * 인기순 게시판 목록 조회
    * @returns 
    */
-  async getPopularPosts(): Promise<Post[]> {
+  async getPopularPosts(): Promise<any[]> {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   
-    return await this.postRepository
+    const posts = await this.postRepository
       .createQueryBuilder('post')
       .where('post.createdAt >= :sevenDaysAgo', { sevenDaysAgo })
       .orderBy('(post.likesCount * 3 + post.commentsCount * 2 + post.views)', 'DESC')
       .limit(10)
       .getMany();
+
+    // 각 게시글에 작성자 정보 추가
+    const postsWithUserInfo = await Promise.all(
+      posts.map(async (post) => {
+        const userInfo = await this.getUserInfo(post.authorId);
+        return {
+          ...post,
+          authorNickname: userInfo?.nickname || '알 수 없음',
+        };
+      })
+    );
+
+    return postsWithUserInfo;
   }
   
   /**
@@ -289,15 +330,29 @@ export class FreeCommunityService {
     const commentMap = new Map<number, any>();
     const roots = [];
   
+    // 모든 댓글의 작성자 정보를 한 번에 가져오기
+    const userIds = [...new Set(comments.map(comment => comment.userId))];
+    const userInfoMap = new Map();
+    
+    await Promise.all(
+      userIds.map(async (userId) => {
+        const userInfo = await this.getUserInfo(userId);
+        userInfoMap.set(userId, userInfo);
+      })
+    );
+  
     for (const comment of comments) {
+      const userInfo = userInfoMap.get(comment.userId);
       const node = {
         id: comment.id,
         userId: comment.userId,
+        userNickname: userInfo?.nickname || '알 수 없음',
         content: comment.content,
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt,
         parentId: comment.parentId,
         level: comment.level,
+        likesCount: comment.likesCount,
         children: [],
       };
   
@@ -308,7 +363,6 @@ export class FreeCommunityService {
         if (parentNode) {
           parentNode.children.push(node);
         } else {
-          // 혹시 부모가 순서상 아직 안 만들어졌다면 나중에 묶임
           commentMap.set(comment.parentId, { children: [node] });
         }
       } else {
@@ -380,7 +434,7 @@ export class FreeCommunityService {
    * @param commentId 
    * @returns 좋아요 상태 (true: 좋아요 추가됨, false: 좋아요 취소됨)
    */
-  async toggleCommentLike(userId: string, commentId: number): Promise<boolean> {
+  async toggleCommentLike(userId: string, commentId: number): Promise<{ isLiked: boolean; likesCount: number }> {
     console.log(`[toggleCommentLike] 시작 - userId: ${userId}, commentId: ${commentId}`);
     
     const comment = await this.postCommentRepository.findOne({ 
@@ -406,7 +460,7 @@ export class FreeCommunityService {
       comment.likesCount -= 1;
       await this.postCommentRepository.save(comment);
       console.log(`[toggleCommentLike] 좋아요 취소 완료 - 현재 좋아요 수: ${comment.likesCount}`);
-      return false;
+      return { isLiked: false, likesCount: comment.likesCount };
     } else {
       // 좋아요 추가
       console.log(`[toggleCommentLike] 좋아요 추가 - userId: ${userId}, commentId: ${commentId}`);
@@ -417,7 +471,7 @@ export class FreeCommunityService {
       comment.likesCount += 1;
       await this.postCommentRepository.save(comment);
       console.log(`[toggleCommentLike] 좋아요 추가 완료 - 현재 좋아요 수: ${comment.likesCount}`);
-      return true;
+      return { isLiked: true, likesCount: comment.likesCount };
     }
   }
   
@@ -473,5 +527,11 @@ export class FreeCommunityService {
     });
     console.log(`[hasLiked] 좋아요 여부: ${!!existing}`);
     return !!existing;
+  }
+
+  async getUserInfo(userId: string) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'getUser' }, { id: userId })
+    );
   }
 }

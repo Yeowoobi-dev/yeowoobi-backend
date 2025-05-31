@@ -134,4 +134,16 @@ export class UserService {
 
     return user.interests.map(interest => interest.tag);
   }
+
+  async getUser(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId }
+    });
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    
+    return user;
+  }
 }
