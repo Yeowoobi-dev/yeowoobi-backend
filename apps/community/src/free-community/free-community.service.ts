@@ -183,7 +183,7 @@ export class FreeCommunityService {
    * @param postId 
    * @returns 좋아요 상태 (true: 좋아요 추가됨, false: 좋아요 취소됨)
    */
-  async toggleLike(userId: string, postId: number): Promise<boolean> {
+  async toggleLike(userId: string, postId: number): Promise<{ isLiked: boolean; likesCount: number }> {
     console.log(`[toggleLike] 시작 - userId: ${userId}, postId: ${postId}`);
     
     const post = await this.postRepository.findOne({ where: { id: postId }});
@@ -207,7 +207,7 @@ export class FreeCommunityService {
       post.likesCount -= 1;
       await this.postRepository.save(post);
       console.log(`[toggleLike] 좋아요 취소 완료 - 현재 좋아요 수: ${post.likesCount}`);
-      return false;
+      return { isLiked: false, likesCount: post.likesCount };
     } else {
       // 좋아요 추가
       console.log(`[toggleLike] 좋아요 추가 - userId: ${userId}, postId: ${postId}`);
@@ -218,7 +218,7 @@ export class FreeCommunityService {
       post.likesCount += 1;
       await this.postRepository.save(post);
       console.log(`[toggleLike] 좋아요 추가 완료 - 현재 좋아요 수: ${post.likesCount}`);
-      return true;
+      return { isLiked: true, likesCount: post.likesCount };
     }
   }
   
@@ -434,7 +434,7 @@ export class FreeCommunityService {
    * @param commentId 
    * @returns 좋아요 상태 (true: 좋아요 추가됨, false: 좋아요 취소됨)
    */
-  async toggleCommentLike(userId: string, commentId: number): Promise<boolean> {
+  async toggleCommentLike(userId: string, commentId: number): Promise<{ isLiked: boolean; likesCount: number }> {
     console.log(`[toggleCommentLike] 시작 - userId: ${userId}, commentId: ${commentId}`);
     
     const comment = await this.postCommentRepository.findOne({ 
@@ -460,7 +460,7 @@ export class FreeCommunityService {
       comment.likesCount -= 1;
       await this.postCommentRepository.save(comment);
       console.log(`[toggleCommentLike] 좋아요 취소 완료 - 현재 좋아요 수: ${comment.likesCount}`);
-      return false;
+      return { isLiked: false, likesCount: comment.likesCount };
     } else {
       // 좋아요 추가
       console.log(`[toggleCommentLike] 좋아요 추가 - userId: ${userId}, commentId: ${commentId}`);
@@ -471,7 +471,7 @@ export class FreeCommunityService {
       comment.likesCount += 1;
       await this.postCommentRepository.save(comment);
       console.log(`[toggleCommentLike] 좋아요 추가 완료 - 현재 좋아요 수: ${comment.likesCount}`);
-      return true;
+      return { isLiked: true, likesCount: comment.likesCount };
     }
   }
   
