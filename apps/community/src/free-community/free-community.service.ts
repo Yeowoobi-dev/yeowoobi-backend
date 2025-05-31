@@ -8,6 +8,7 @@ import { PostComment } from './entity/post-comment.entity';
 import { CommentLike } from './entity/comment-like.entity';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class FreeCommunityService {
@@ -56,10 +57,10 @@ export class FreeCommunityService {
     content?: string,
   ) {
     const post = await this.postRepository.findOne({ where: { id: postId }});
-    if (!post) throw new NotFoundException('게시글이 존재하지 않습니다');
+    if (!post) throw new RpcException(new NotFoundException('게시글을 찾을 수 없습니다'));
   
     if (post.authorId !== userId) {
-      throw new BadRequestException('작성자만 수정할 수 있습니다');
+      throw new RpcException(new BadRequestException('작성자만 수정할 수 있습니다'));
     }
   
     await this.postRepository.update(postId, {
@@ -131,7 +132,7 @@ export class FreeCommunityService {
     });
 
     if (!post) {
-      throw new NotFoundException('게시글을 찾을 수 없습니다');
+      throw new RpcException(new NotFoundException('게시글을 찾을 수 없습니다'));
     }
 
     // 작성자 정보 추가
@@ -189,7 +190,7 @@ export class FreeCommunityService {
     const post = await this.postRepository.findOne({ where: { id: postId }});
     if (!post) {
       console.log(`[toggleLike] 실패 - 게시글을 찾을 수 없음: postId ${postId}`);
-      throw new NotFoundException('게시글을 찾을 수 없습니다');
+      throw new RpcException(new NotFoundException('게시글을 찾을 수 없습니다'));
     }
     console.log(`[toggleLike] 게시글 찾음: ${JSON.stringify(post)}`);
   
@@ -269,7 +270,7 @@ export class FreeCommunityService {
     const post = await this.postRepository.findOne({ where: { id: postId }});
     if (!post) {
       console.log(`[writeComment] 실패 - 게시글을 찾을 수 없음: postId ${postId}`);
-      throw new NotFoundException('게시글이 존재하지 않습니다');
+      throw new RpcException(new NotFoundException('게시글을 찾을 수 없습니다'));
     }
     console.log(`[writeComment] 게시글 찾음: ${JSON.stringify(post)}`);
 
@@ -284,12 +285,12 @@ export class FreeCommunityService {
       
       if (!parent) {
         console.log(`[writeComment] 실패 - 부모 댓글을 찾을 수 없음: parentId ${parentId}`);
-        throw new NotFoundException('부모 댓글을 찾을 수 없습니다');
+        throw new RpcException(new NotFoundException('부모 댓글을 찾을 수 없습니다'));
       }
       
       if (parent.post.id !== postId) {
         console.log(`[writeComment] 실패 - 부모 댓글이 다른 게시글에 속함: parent.post.id ${parent.post.id}, postId ${postId}`);
-        throw new BadRequestException('유효하지 않은 부모 댓글입니다');
+        throw new RpcException(new BadRequestException('유효하지 않은 부모 댓글입니다'));
       }
       
       level = parent.level + 1;
@@ -442,7 +443,7 @@ export class FreeCommunityService {
     });
     if (!comment) {
       console.log(`[toggleCommentLike] 실패 - 댓글을 찾을 수 없음: commentId ${commentId}`);
-      throw new NotFoundException('댓글을 찾을 수 없습니다');
+      throw new RpcException(new NotFoundException('댓글을 찾을 수 없습니다'));
     }
     console.log(`[toggleCommentLike] 댓글 찾음: ${JSON.stringify(comment)}`);
   
@@ -489,7 +490,7 @@ export class FreeCommunityService {
     });
     if (!comment) {
       console.log(`[hasLikedComment] 실패 - 댓글을 찾을 수 없음: commentId ${commentId}`);
-      throw new NotFoundException('댓글을 찾을 수 없습니다');
+      throw new RpcException(new NotFoundException('댓글을 찾을 수 없습니다'));
     }
     console.log(`[hasLikedComment] 댓글 찾음: ${JSON.stringify(comment)}`);
   
@@ -515,7 +516,7 @@ export class FreeCommunityService {
     const post = await this.postRepository.findOne({ where: { id: postId }});
     if (!post) {
       console.log(`[hasLiked] 실패 - 게시글을 찾을 수 없음: postId ${postId}`);
-      throw new NotFoundException('게시글을 찾을 수 없습니다');
+      throw new RpcException(new NotFoundException('게시글을 찾을 수 없습니다'));
     }
     console.log(`[hasLiked] 게시글 찾음: ${JSON.stringify(post)}`);
   

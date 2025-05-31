@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Follow } from './entity/follow.entity';
 import { User } from '../user/entity/user.entity';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class FollowService {
@@ -62,7 +63,7 @@ export class FollowService {
       },
     });
     if (!follow) {
-      throw new NotFoundException("팔로우 관계가 존재하지 않습니다.");
+      throw new RpcException(new NotFoundException("팔로우 관계가 존재하지 않습니다."));
     }
 
     await this.followRepository.delete(follow.id);
