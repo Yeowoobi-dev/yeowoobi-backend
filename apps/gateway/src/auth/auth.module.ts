@@ -35,7 +35,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: undefined },
+        signOptions: { expiresIn: '30d' },
       }),
     }),
     forwardRef(() => UserModule)

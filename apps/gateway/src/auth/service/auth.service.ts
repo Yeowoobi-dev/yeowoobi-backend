@@ -21,7 +21,7 @@ export class AuthService {
     };
     console.log('Signing JWT with:', payload);
 
-    return this.jwtService.sign(payload)
+    return this.jwtService.sign(payload, { expiresIn: '30d' })
   }
 
   /**
