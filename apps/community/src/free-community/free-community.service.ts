@@ -298,6 +298,7 @@ export class FreeCommunityService {
         updatedAt: comment.updatedAt,
         parentId: comment.parentId,
         level: comment.level,
+        likesCount: comment.likesCount,
         children: [],
       };
   
