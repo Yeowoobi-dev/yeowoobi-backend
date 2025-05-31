@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BookLog } from './entities/book-log.entity';
+import { BookLog } from './entity/book-log.entity';
 import { BookLogController } from './book-log.controller';
 import { BookLogService } from './book-log.service';
 import { HttpModule } from '@nestjs/axios';
