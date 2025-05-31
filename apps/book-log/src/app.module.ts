@@ -19,7 +19,7 @@ import { BookLogController } from "./book-log/book-log.controller";
         }),
         JwtModule.register({
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '1h'},
+          signOptions: { expiresIn: undefined },
         }),
         TypeOrmModule.forRootAsync({
           useFactory: (configService: ConfigService) => ({

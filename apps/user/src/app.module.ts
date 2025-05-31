@@ -18,7 +18,7 @@ import path from "path";
     }),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1h'},
+      signOptions: { expiresIn: undefined },
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
