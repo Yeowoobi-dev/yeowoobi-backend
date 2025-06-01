@@ -1,9 +1,9 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards, Post, Body } from '@nestjs/common';
 import { AuthService } from './service/auth.service';
 import { KakaoAuthGuard } from './guard/kakao-auth.guard';
 import { KakaoAuthService } from './service/kakao-auth.service';
 import { GrpcMethod } from '@nestjs/microservices';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -27,5 +27,14 @@ export class AuthController {
     const token = await this.authService.generateJwtToken(user)
     
     return {token: token};
+  }
+
+  @Post('kakao/ios')
+  @ApiOperation({ summary: 'iOS 앱용 카카오 로그인' })
+  async kakaoIosLogin(@Body('accessToken') accessToken: string) {
+    const user = await this.kakaoAuthService.validateOrCreateUserFromToken(accessToken);
+    const token = await this.authService.generateJwtToken(user);
+    
+    return { token };
   }
 }
