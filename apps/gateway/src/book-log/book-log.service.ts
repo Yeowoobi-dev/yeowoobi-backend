@@ -43,4 +43,82 @@ export class BookLogService {
       this.bookLogClient.send({ cmd: 'getBookLog' }, { userId })
     );
   }
+
+  async getBookLogList(userId: string) {
+    return await firstValueFrom(
+      this.bookLogClient.send({ cmd: 'getBookLogList' }, { userId })
+    );
+  }
+
+  async createComment(userId: string, commentData: { content: string; bookLogId: number; parentId?: number }) {
+    return await firstValueFrom(
+      this.bookLogClient.send({ cmd: 'createComment' }, { userId, ...commentData })
+    );
+  }
+
+  async getComments(bookLogId: number, userId?: string) {
+    try {
+      return await firstValueFrom(
+        this.bookLogClient.send({ cmd: 'getComments' }, { bookLogId, userId })
+      );
+    } catch (error) {
+      console.error('Error in getComments:', error);
+      return [];
+    }
+  }
+
+  async deleteComment(userId: string, commentId: number) {
+    try {
+      return await firstValueFrom(
+        this.bookLogClient.send({ cmd: 'deleteComment' }, { userId, commentId })
+      );
+    } catch (error) {
+      console.error('Error in deleteComment:', error);
+      throw error;
+    }
+  }
+
+  async toggleCommentLike(userId: string, commentId: number) {
+    try {
+      return await firstValueFrom(
+        this.bookLogClient.send({ cmd: 'toggleCommentLike' }, { userId, commentId })
+      );
+    } catch (error) {
+      console.error('Error in toggleCommentLike:', error);
+      throw error;
+    }
+  }
+
+  async getCommentLikes(commentId: number) {
+    try {
+      return await firstValueFrom(
+        this.bookLogClient.send({ cmd: 'getCommentLikes' }, { commentId })
+      );
+    } catch (error) {
+      console.error('Error in getCommentLikes:', error);
+      return [];
+    }
+  }
+
+  async toggleBookLogLike(userId: string, bookLogId: number) {
+    try {
+      return await firstValueFrom(
+        this.bookLogClient.send({ cmd: 'toggleBookLogLike' }, { userId, bookLogId })
+      );
+    } catch (error) {
+      console.error('Error in toggleBookLogLike:', error);
+      throw error;
+    }
+  }
+
+  async getBookLogLikes(bookLogId: number) {
+    try {
+      return await firstValueFrom(
+        this.bookLogClient.send({ cmd: 'getBookLogLikes' }, { bookLogId })
+      );
+    } catch (error) {
+      console.error('Error in getBookLogLikes:', error);
+      return [];
+    }
+  }
 }

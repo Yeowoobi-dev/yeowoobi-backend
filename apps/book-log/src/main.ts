@@ -9,7 +9,7 @@ async function bootstrap() {
     {
       transport: Transport.TCP,
       options: {
-        host: '0.0.0.0',
+        host: 'book-log',
         port: 5001,
       },
     },
@@ -20,7 +20,7 @@ async function bootstrap() {
     whitelist: true,
     forbidNonWhitelisted: true,
   }));
-
+  
   await app.listen();
 }
 bootstrap();

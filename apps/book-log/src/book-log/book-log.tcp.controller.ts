@@ -1,7 +1,6 @@
-import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Controller, BadRequestException } from '@nestjs/common';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { BookLogService } from './book-log.service';
-import { BadRequestException } from '@nestjs/common';
 
 @Controller()
 export class BookLogTcpController {
@@ -88,7 +87,23 @@ export class BookLogTcpController {
       return result;
     } catch (error) {
       console.error('Search error:', error);
-      throw error;
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'saveBookInfo' })
+  async saveBookInfo(@Payload() data: { userId: string; bookLog: any }) {
+    console.log('Received save book info request:', data);
+    try {
+      if (!data || typeof data !== 'object' || !data.userId || !data.bookLog) {
+        throw new RpcException('Invalid message format: userId and bookLog are required');
+      }
+      const result = await this.bookLogService.saveBookInfo(data.userId, data.bookLog);
+      console.log('Save book info result:', result);
+      return result;
+    } catch (error) {
+      console.error('Save book info error:', error);
+      throw new RpcException(error.message);
     }
   }
 
@@ -108,26 +123,104 @@ export class BookLogTcpController {
     console.log('Received create book log request:', data);
     try {
       if (!data || typeof data !== 'object' || !data.userId || !data.logTitle) {
-        throw new BadRequestException('Invalid message format: userId and logTitle are required');
+        throw new RpcException('Invalid message format: userId and logTitle are required');
       }
       const result = await this.bookLogService.createBookLog(data);
       console.log('Create book log result:', result);
       return result;
     } catch (error) {
       console.error('Create book log error:', error);
-      throw error;
+      throw new RpcException(error.message);
     }
   }
 
   @MessagePattern({ cmd: 'getBookLog' })
   async getBookLog(@Payload() data: { userId: string }) {
     try {
-      if (!data || typeof data !== 'object' || !data.userId) {
-        throw new BadRequestException('Invalid message format: userId is required');
-      }
       return await this.bookLogService.getBookLog(data.userId);
     } catch (error) {
-      throw error;
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'getBookLogList' })
+  async getBookLogList(@Payload() data: { userId: string }) {
+    try {
+      return await this.bookLogService.getBookLogList(data.userId);
+    } catch (error) {
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'createComment' })
+  async createComment(@Payload() data: {
+    userId: string;
+    bookLogId: number;
+    content: string;
+    parentId?: number;
+  }) {
+    try {
+      return await this.bookLogService.createComment(data.userId, {
+        bookLogId: data.bookLogId,
+        content: data.content,
+        parentId: data.parentId
+      });
+    } catch (error) {
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'getComments' })
+  async getComments(@Payload() data: { bookLogId: number; userId?: string }) {
+    try {
+      return await this.bookLogService.getComments(data.bookLogId, data.userId);
+    } catch (error) {
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'deleteComment' })
+  async deleteComment(@Payload() data: { userId: string; commentId: number }) {
+    try {
+      return await this.bookLogService.deleteComment(data.userId, data.commentId);
+    } catch (error) {
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'toggleCommentLike' })
+  async toggleCommentLike(@Payload() data: { userId: string; commentId: number }) {
+    try {
+      return await this.bookLogService.toggleCommentLike(data.userId, data.commentId);
+    } catch (error) {
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'getCommentLikes' })
+  async getCommentLikes(@Payload() data: { commentId: number }) {
+    try {
+      return await this.bookLogService.getCommentLikes(data.commentId);
+    } catch (error) {
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'toggleBookLogLike' })
+  async toggleBookLogLike(@Payload() data: { userId: string; bookLogId: number }) {
+    try {
+      return await this.bookLogService.toggleBookLogLike(data.userId, data.bookLogId);
+    } catch (error) {
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'getBookLogLikes' })
+  async getBookLogLikes(@Payload() data: { bookLogId: number }) {
+    try {
+      return await this.bookLogService.getBookLogLikes(data.bookLogId);
+    } catch (error) {
+      throw new RpcException(error.message);
     }
   }
 } 
