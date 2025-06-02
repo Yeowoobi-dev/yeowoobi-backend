@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Req, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, Req, Param, Delete, Put } from '@nestjs/common';
 import { BookLogService } from './book-log.service';
 import { AuthGuard } from '@nestjs/passport';
 import { SaveBookLogDto } from './dto/book-log.dto';
@@ -124,5 +124,27 @@ export class BookLogController {
   @Get('log/:id/likes')
   async getBookLogLikes(@Param('id') bookLogId: number) {
     return await this.bookLogService.getBookLogLikes(bookLogId);
+  }
+
+  @Delete('log/:id')
+  async deleteBookLog(@Req() req, @Param('id') id: number) {
+    return this.bookLogService.deleteBookLog(req.user.id, id);
+  }
+
+  @Put('log/:id')
+  async updateBookLog(
+    @Req() req,
+    @Param('id') id: number,
+    @Body() updateBookLogDto: {
+      bookTitle: string;
+      author: string;
+      publisher: string;
+      title: string;
+      background: string;
+      content: string;
+      review: string;
+    }
+  ) {
+    return this.bookLogService.updateBookLog(req.user.userId, id, updateBookLogDto);
   }
 }
