@@ -59,7 +59,6 @@ export class BookLogService {
   async getBookLogList(userId: string) {
     try {
       const bookLogs = await this.bookLogRepository.find({ 
-        where: { userId },
         order: { createdAt: 'DESC' }
       });
 
@@ -69,7 +68,7 @@ export class BookLogService {
           try {
             const [isLiked, userInfo] = await Promise.all([
               this.hasLikedBookLog(userId, bookLog.id),
-              this.getUserInfo(userId)
+              this.getUserInfo(bookLog.userId)  // 각 북로그의 작성자 정보 조회
             ]);
             return {
               ...bookLog,
@@ -404,5 +403,49 @@ export class BookLogService {
     });
 
     return await this.bookLogRepository.save(bookLogEntity);
+  }
+
+  async deleteBookLog(userId: string, bookLogId: number) {
+    const bookLog = await this.bookLogRepository.findOne({
+      where: { id: bookLogId, userId }
+    });
+
+    if (!bookLog) {
+      throw new NotFoundException('북로그를 찾을 수 없거나 삭제 권한이 없습니다.');
+    }
+
+    // 관련된 댓글과 좋아요 삭제
+    await Promise.all([
+      this.logCommentRepository.delete({ bookLog: { id: bookLogId } }),
+      this.bookLogLikeRepository.delete({ bookLog: { id: bookLogId } })
+    ]);
+
+    // 북로그 삭제
+    await this.bookLogRepository.remove(bookLog);
+
+    return { message: '북로그가 삭제되었습니다.' };
+  }
+
+  async updateBookLog(userId: string, bookLogId: number, updateData: {
+    logTitle: string;
+    text: string;
+    background: string;
+    review: string;
+    bookTitle: string;
+    author: string;
+    publisher: string;
+  }) {
+    const bookLog = await this.bookLogRepository.findOne({
+      where: { id: bookLogId, userId }
+    });
+
+    if (!bookLog) {
+      throw new NotFoundException('북로그를 찾을 수 없거나 수정 권한이 없습니다.');
+    }
+
+    // 업데이트할 필드만 수정
+    Object.assign(bookLog, updateData);
+    
+    return await this.bookLogRepository.save(bookLog);
   }
 }

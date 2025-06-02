@@ -121,4 +121,44 @@ export class BookLogService {
       return [];
     }
   }
+
+  async deleteBookLog(userId: string, bookLogId: number) {
+    try {
+      return await firstValueFrom(
+        this.bookLogClient.send({ cmd: 'deleteBookLog' }, { userId, bookLogId })
+      );
+    } catch (error) {
+      console.error('Error in deleteBookLog:', error);
+      throw error;
+    }
+  }
+
+  async updateBookLog(userId: string, bookLogId: number, updateData: {
+    bookTitle: string;
+    author: string;
+    publisher: string;
+    title: string;
+    background: string;
+    content: string;
+    review: string;
+  }) {
+    try {
+      return await firstValueFrom(
+        this.bookLogClient.send({ cmd: 'updateBookLog' }, { 
+          userId, 
+          bookLogId,
+          bookTitle: updateData.bookTitle,
+          author: updateData.author,
+          publisher: updateData.publisher,
+          logTitle: updateData.title,
+          text: updateData.content,
+          background: updateData.background,
+          review: updateData.review
+        })
+      );
+    } catch (error) {
+      console.error('Error in updateBookLog:', error);
+      throw error;
+    }
+  }
 }

@@ -42,29 +42,47 @@ export class BookLogTcpController {
   //   }
   // }
 
-  // @MessagePattern({ cmd: 'updateBookLog' })
-  // async updateBookLog(@Payload() data: any) {
-  //   try {
-  //     if (!data || typeof data !== 'object' || !data.id) {
-  //       throw new BadRequestException('Invalid message format: id is required');
-  //     }
-  //     return await this.bookLogService.updateBookLog(data.id, data);
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
+  @MessagePattern({ cmd: 'updateBookLog' })
+  async updateBookLog(@Payload() data: {
+    userId: string;
+    bookLogId: number;
+    bookTitle: string;
+    author: string;
+    publisher: string;
+    logTitle: string;
+    text: string;
+    background: string;
+    review: string;
+  }) {
+    try {
+      return await this.bookLogService.updateBookLog(
+        data.userId,
+        data.bookLogId,
+        {
+          bookTitle: data.bookTitle,
+          author: data.author,
+          publisher: data.publisher,
+          logTitle: data.logTitle,
+          text: data.text,
+          background: data.background,
+          review: data.review
+        }
+      );
+    } catch (error) {
+      console.error('Error in updateBookLog:', error);
+      throw error;
+    }
+  }
 
-  // @MessagePattern({ cmd: 'deleteBookLog' })
-  // async deleteBookLog(@Payload() data: any) {
-  //   try {
-  //     if (!data || typeof data !== 'object' || !data.id) {
-  //       throw new BadRequestException('Invalid message format: id is required');
-  //     }
-  //     return await this.bookLogService.deleteBookLog(data.id);
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
+  @MessagePattern({ cmd: 'deleteBookLog' })
+  async deleteBookLog(@Payload() data: { userId: string; bookLogId: number }) {
+    try {
+      return await this.bookLogService.deleteBookLog(data.userId, data.bookLogId);
+    } catch (error) {
+      console.error('Error in deleteBookLog:', error);
+      throw error;
+    }
+  }
 
   // @MessagePattern({ cmd: 'findBookLogsByBookId' })
   // async findBookLogsByBookId(@Payload() data: any) {
