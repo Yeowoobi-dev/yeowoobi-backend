@@ -15,8 +15,8 @@ export class BookLog extends BaseTable {
   @Column({ nullable: true })
   logTitle: string;
 
-  @Column({type: "text", nullable: true})
-  text: string;
+  @Column({ type: 'jsonb', nullable: true })
+  text: any;
 
   @Column({type: "text", nullable: true})
   background: string;

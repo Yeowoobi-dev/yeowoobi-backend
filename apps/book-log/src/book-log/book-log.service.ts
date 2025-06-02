@@ -53,7 +53,41 @@ export class BookLogService {
   }
 
   async getBookLog(userId: string) {
-    return await this.bookLogRepository.findOne({ where: { userId } });
+    try {
+      const bookLogs = await this.bookLogRepository.find({
+        where: { userId },
+        order: { createdAt: 'DESC' }
+      });
+
+      // 각 북로그에 대해 좋아요 여부와 작성자 정보 확인
+      const bookLogsWithLikeStatus = await Promise.all(
+        bookLogs.map(async (bookLog) => {
+          try {
+            const [isLiked, userInfo] = await Promise.all([
+              this.hasLikedBookLog(userId, bookLog.id),
+              this.getUserInfo(bookLog.userId)
+            ]);
+            return {
+              ...bookLog,
+              isLiked,
+              userNickname: userInfo?.nickname || '알 수 없음'
+            };
+          } catch (error) {
+            console.error(`Error processing book log ${bookLog.id}:`, error);
+            return {
+              ...bookLog,
+              isLiked: false,
+              userNickname: '알 수 없음'
+            };
+          }
+        })
+      );
+
+      return bookLogsWithLikeStatus;
+    } catch (error) {
+      console.error('Error in getBookLog:', error);
+      throw error;
+    }
   }
 
   async getBookLogList(userId: string) {
