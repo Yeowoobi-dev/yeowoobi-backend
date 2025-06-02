@@ -1,5 +1,7 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, PrimaryGeneratedColumn, OneToMany } from "typeorm";
 import { BaseTable } from "../../common/entity/base-table.entity";
+import { LogComment } from "./log-comment.entity";
+import { BookLogLike } from "./book-log-like.entity";
 
 @Entity()
 export class BookLog extends BaseTable {
@@ -41,4 +43,16 @@ export class BookLog extends BaseTable {
   @Index() // 공개 범위 필터링 최적화
   @Column({ type: "enum", enum: ["public", "private", "followers"], default: "private" })
   visibility: "public" | "private" | "followers";
+
+  @OneToMany(() => LogComment, (comment) => comment.bookLog)
+  comments: LogComment[];
+
+  @Column({ default: 0 })
+  likesCount: number;
+
+  @Column({ default: 0 })
+  commentsCount: number;
+
+  @OneToMany(() => BookLogLike, (like) => like.bookLog)
+  likes: BookLogLike[];
 }

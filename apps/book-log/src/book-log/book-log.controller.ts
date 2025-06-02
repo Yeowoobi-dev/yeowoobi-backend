@@ -3,6 +3,7 @@ import { BookLogService } from './book-log.service';
 import { CreateBookLogDto } from './dto/create-book-log.dto';
 import { UpdateBookLogDto } from './dto/update-book-log.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateLogCommentDto } from './dto/create-log-comment.dto';
 
 @Controller('books')
 @UseGuards(AuthGuard('jwt'))
@@ -54,10 +55,63 @@ export class BookLogController {
     return await this.bookLogService.getBookLog(req.user.id);
 
   }
-  
-  // 특정 독서록 상세 조회 ?
 
-  // 특정 독서록 수정
+  @Get('log/list')
+  async getBookLogList(@Req() req) {
+    return await this.bookLogService.getBookLogList(req.user.id);
+  }
 
-  // 사용자의 독서록 목록 조회(고민 : 특정 사용자 or 본인)
+  @Post('log/:id/comment')
+  async createComment(
+    @Req() req,
+    @Param('id') bookLogId: number,
+    @Body() createLogCommentDto: CreateLogCommentDto
+  ) {
+    return await this.bookLogService.createComment(req.user.id, {
+      ...createLogCommentDto,
+      bookLogId
+    });
+  }
+
+  @Get('log/:id/comments')
+  async getComments(
+    @Req() req,
+    @Param('id') bookLogId: number
+  ) {
+    return await this.bookLogService.getComments(bookLogId, req.user?.id);
+  }
+
+  @Delete('log/comment/:id')
+  async deleteComment(
+    @Req() req,
+    @Param('id') commentId: number
+  ) {
+    return await this.bookLogService.deleteComment(req.user.id, commentId);
+  }
+
+  @Post('log/comment/:id/like')
+  async toggleCommentLike(
+    @Req() req,
+    @Param('id') commentId: number
+  ) {
+    return await this.bookLogService.toggleCommentLike(req.user.id, commentId);
+  }
+
+  @Get('log/comment/:id/likes')
+  async getCommentLikes(@Param('id') commentId: number) {
+    return await this.bookLogService.getCommentLikes(commentId);
+  }
+
+  @Post('log/:id/like')
+  async toggleBookLogLike(
+    @Req() req,
+    @Param('id') bookLogId: number
+  ) {
+    return await this.bookLogService.toggleBookLogLike(req.user.id, bookLogId);
+  }
+
+  @Get('log/:id/likes')
+  async getBookLogLikes(@Param('id') bookLogId: number) {
+    return await this.bookLogService.getBookLogLikes(bookLogId);
+  }
 }

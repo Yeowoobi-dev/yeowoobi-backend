@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, Req, Param, Delete } from '@nestjs/common';
 import { BookLogService } from './book-log.service';
 import { AuthGuard } from '@nestjs/passport';
 import { SaveBookLogDto } from './dto/book-log.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { CreateLogCommentDto } from './dto/create-log-comment.dto';
 
 @ApiTags('book-logs')
 @ApiBearerAuth()
@@ -24,6 +25,7 @@ export class BookLogController {
 
   @ApiOperation({ summary: '도서 정보 저장' })
   @ApiResponse({ status: 201, description: '도서 정보 저장 성공' })
+
   @Post()
   async saveBookInfo(@Req() req, @Body() bookLog: SaveBookLogDto) {
     return await this.bookLogService.saveBookInfo(req.user.userId, bookLog);
@@ -63,5 +65,64 @@ export class BookLogController {
   @Get('log')
   async getBookLog(@Req() req) {
     return await this.bookLogService.getBookLog(req.user.userId);
+  }
+
+  @Get('log/list')
+  async getBookLogList(@Req() req) {
+    return await this.bookLogService.getBookLogList(req.user.userId);
+  }
+
+  @Post('log/:id/comment')
+  async createComment(
+    @Req() req,
+    @Param('id') bookLogId: number,
+    @Body() createLogCommentDto: CreateLogCommentDto
+  ) {
+    return await this.bookLogService.createComment(req.user.userId, {
+      ...createLogCommentDto,
+      bookLogId
+    });
+  }
+
+  @Get('log/:id/comments')
+  async getComments(
+    @Req() req,
+    @Param('id') bookLogId: number
+  ) {
+    return await this.bookLogService.getComments(bookLogId, req.user?.userId);
+  }
+
+  @Delete('log/comment/:id')
+  async deleteComment(
+    @Req() req,
+    @Param('id') commentId: number
+  ) {
+    return await this.bookLogService.deleteComment(req.user.userId, commentId);
+  }
+
+  @Post('log/comment/:id/like')
+  async toggleCommentLike(
+    @Req() req,
+    @Param('id') commentId: number
+  ) {
+    return await this.bookLogService.toggleCommentLike(req.user.userId, commentId);
+  }
+
+  @Get('log/comment/:id/likes')
+  async getCommentLikes(@Param('id') commentId: number) {
+    return await this.bookLogService.getCommentLikes(commentId);
+  }
+
+  @Post('log/:id/like')
+  async toggleBookLogLike(
+    @Req() req,
+    @Param('id') bookLogId: number
+  ) {
+    return await this.bookLogService.toggleBookLogLike(req.user.userId, bookLogId);
+  }
+
+  @Get('log/:id/likes')
+  async getBookLogLikes(@Param('id') bookLogId: number) {
+    return await this.bookLogService.getBookLogLikes(bookLogId);
   }
 }
