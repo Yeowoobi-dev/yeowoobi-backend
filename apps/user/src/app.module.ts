@@ -5,6 +5,7 @@ import * as Joi from "joi";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { FollowModule } from './follow/follow.module';
 import { JwtModule } from "@nestjs/jwt";
+import { AuthModule } from './auth/auth.module';
 import path from "path";
 
 @Module({
@@ -32,6 +33,7 @@ import path from "path";
     }),
     UserModule,
     FollowModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
