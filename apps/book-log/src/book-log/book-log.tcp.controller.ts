@@ -42,6 +42,11 @@ export class BookLogTcpController {
   //   }
   // }
 
+  @MessagePattern({ cmd: 'getBookLogById' })
+  async getBookLogById(@Payload() data: { userId: string; bookId: number }) {
+    return await this.bookLogService.getBookLogById(data.userId, data.bookId);
+  }
+
   @MessagePattern({ cmd: 'updateBookLog' })
   async updateBookLog(@Payload() data: {
     userId: string;
