@@ -41,4 +41,9 @@ export class UserTcpController {
   async getUser(@Payload() data: { id: string }) {
     return this.userService.getUser(data.id);
   }
+
+  @MessagePattern({ cmd: 'getUserName' })
+  async getUserName(@Payload() data: { id: string }) {
+    return this.userService.getUserName(data.id);
+  }
 } 

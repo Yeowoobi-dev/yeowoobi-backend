@@ -87,4 +87,18 @@ export class UserController {
 
     return { followingList: followingList || [] };
   }
+
+  @Get()
+  @UseGuards(AuthGuard('jwt'))
+  async getUser(@Req() req) {
+    const userId = req.user.userId;
+    return this.userService.getUser(userId);
+  }
+
+  @Get('/name')
+  @UseGuards(AuthGuard('jwt'))
+  async getUserName(@Req() req) {
+    const userId = req.user.userId;
+    return this.userService.getUserName(userId);
+  }
 }

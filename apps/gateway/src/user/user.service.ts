@@ -44,9 +44,9 @@ export class UserService {
     );
   }
 
-  async getUser(id: number) {
+  async getUser(userId: string) {
     return firstValueFrom(
-      this.userClient.send({ cmd: 'getUser' }, { id })
+      this.userClient.send({ cmd: 'getUser' }, { id: userId })
     );
   }
 
@@ -83,6 +83,12 @@ export class UserService {
   async findFollowing(userId: string) {
     return firstValueFrom(
       this.userClient.send({ cmd: 'findFollowing' }, { userId })
+    );
+  }
+
+  async getUserName(userId: string) {
+    return firstValueFrom(
+      this.userClient.send({ cmd: 'getUserName' }, { userId })
     );
   }
 }
