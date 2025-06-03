@@ -162,10 +162,23 @@ export class UserService {
         return { nickname: '알 수 없음' };
       }
       
-      return user;
+      return {
+        id: user.id,
+        name: user.name,
+        introduce: user.introduce,
+        nickname: user.nickname,
+        interests: user.interests.map(interest => interest.tag)
+      };
     } catch (error) {
       console.error('Error in getUser:', error);
       return { nickname: '알 수 없음' };
     }
+  }
+
+  async getUserName(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId }
+    });
+    return user.name;
   }
 }
