@@ -44,6 +44,12 @@ export class BookLogService {
     );
   }
 
+  async getBookLogById(userId: string, bookId: number) {
+    return await firstValueFrom(
+      this.bookLogClient.send({ cmd: 'getBookLogById' }, { userId, bookId })
+    );
+  }
+
   async getBookLogList(userId: string) {
     return await firstValueFrom(
       this.bookLogClient.send({ cmd: 'getBookLogList' }, { userId })

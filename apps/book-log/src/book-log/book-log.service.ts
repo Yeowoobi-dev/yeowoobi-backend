@@ -68,16 +68,21 @@ export class BookLogService {
               this.getUserInfo(bookLog.userId)
             ]);
             return {
-              ...bookLog,
-              isLiked,
-              userNickname: userInfo?.nickname || '알 수 없음'
+              createdAt: bookLog.createdAt,
+              updatedAt: bookLog.updatedAt,
+              id: bookLog.id,
+              userId: bookLog.userId,
+              bookTitle: bookLog.bookTitle,
+              bookImage: bookLog.bookImage,
+              author: bookLog.author,
             };
           } catch (error) {
             console.error(`Error processing book log ${bookLog.id}:`, error);
             return {
-              ...bookLog,
-              isLiked: false,
-              userNickname: '알 수 없음'
+              id: bookLog.id,
+              bookTitle: bookLog.bookTitle,
+              bookImage: bookLog.bookImage,
+              author: bookLog.author,
             };
           }
         })
@@ -88,6 +93,10 @@ export class BookLogService {
       console.error('Error in getBookLog:', error);
       throw error;
     }
+  }
+
+  async getBookLogById(userId: string, bookId: number) {
+    return await this.bookLogRepository.findOne({ where: { id: bookId, userId } });
   }
 
   async getBookLogList(userId: string) {

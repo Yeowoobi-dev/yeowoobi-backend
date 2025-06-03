@@ -67,6 +67,11 @@ export class BookLogController {
     return await this.bookLogService.getBookLog(req.user.userId);
   }
 
+  @Get('log/:id')
+  async getBookLogById(@Req() req, @Param('id') bookId: number) {
+    return await this.bookLogService.getBookLogById(req.user.userId, bookId);
+  }
+
   @Get('log/list')
   async getBookLogList(@Req() req) {
     return await this.bookLogService.getBookLogList(req.user.userId);
