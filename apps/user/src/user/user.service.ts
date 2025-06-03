@@ -24,8 +24,7 @@ export class UserService {
     
     const user = await this.userRepository.findOne({
       where: {
-        socialId,
-        socialType
+        socialId
       }
     });
     console.log("findBySocialId", user);
@@ -40,13 +39,30 @@ export class UserService {
    * 추후에 변경 예정
    */
   async createUser(data: { social_id: string; email: string; name: string; social_type: string }) {
-    const user = this.userRepository.create({
-      socialId: data.social_id,
-      email: data.email,
-      name: data.name,
-      socialType: data.social_type
-    });
-    return await this.userRepository.save(user);
+    try {
+      // 먼저 기존 사용자 확인
+      const existingUser = await this.findBySocialId(data.social_id, data.social_type);
+      if (existingUser) {
+        return existingUser;
+      }
+
+      const user = this.userRepository.create({
+        socialId: data.social_id,
+        email: data.email,
+        name: data.name,
+        socialType: data.social_type
+      });
+      return await this.userRepository.save(user);
+    } catch (error) {
+      if (error.code === '23505') { // PostgreSQL unique_violation
+        // 중복 키 에러 발생 시 다시 한번 조회
+        const existingUser = await this.findBySocialId(data.social_id, data.social_type);
+        if (existingUser) {
+          return existingUser;
+        }
+      }
+      throw error;
+    }
   }
   /**
    * 닉네임 변경 메소드
@@ -136,14 +152,20 @@ export class UserService {
   }
 
   async getUser(userId: string) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId }
-    });
-    
-    if (!user) {
-      throw new NotFoundException('User not found');
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId }
+      });
+      
+      if (!user) {
+        console.error(`User not found for id: ${userId}`);
+        return { nickname: '알 수 없음' };
+      }
+      
+      return user;
+    } catch (error) {
+      console.error('Error in getUser:', error);
+      return { nickname: '알 수 없음' };
     }
-    
-    return user;
   }
 }
