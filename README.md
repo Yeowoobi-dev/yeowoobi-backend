@@ -1,24 +1,5 @@
 ## 여우비 v1
 
-## Project setup
-
-```bash
-$ pnpm install
-```
-
-## Compile and run the project
-
-```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
-```
 
 ## Server Architecture
-
-## 
+<img src="https://github.com/user-attachments/assets/62fd79d6-1f36-45f0-9a01-be51a160c57a">
